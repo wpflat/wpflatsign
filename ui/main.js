@@ -37,5 +37,5 @@ sdk.registerSlot( 'settings.tabs', { id: 'doc', module: M, order: 40, label: 'Do
 sdk.extend( 'lookup.types', { id: 'doc_type', module: M, order: 70, label: 'Document types' } );
 
 // What shows in the Activity list.
-sdk.extend( 'activity.types', { id: 'docs-contracts', module: M, order: 70, type: { value: 'contracts', label: sdk.tp( 'contract' ) } } );
-sdk.extend( 'activity.types', { id: 'docs-templates', module: M, order: 71, type: { value: 'contract-templates', label: 'Templates' } } );
+sdk.extend( 'activity.types', { id: 'doc-contracts', module: M, order: 70, type: { value: 'contracts', label: sdk.tp( 'contract' ) } } );
+sdk.extend( 'activity.types', { id: 'doc-templates', module: M, order: 71, type: { value: 'contract-templates', label: 'Templates' } } );

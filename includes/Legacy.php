@@ -23,7 +23,7 @@ class Legacy {
 	);
 
 	public static function init() {
-		add_filter( 'bizycore_legacy_import_docs', array( __CLASS__, 'import' ), 10, 2 );
+		add_filter( 'bizycore_legacy_import_doc', array( __CLASS__, 'import' ), 10, 2 );
 	}
 
 	/** @return array|\WP_Error */
