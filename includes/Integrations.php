@@ -1,5 +1,5 @@
 <?php
-namespace BizyDocs;
+namespace BizyDoc;
 
 use BizyCore\Links;
 use BizyCore\Registry;
@@ -7,7 +7,7 @@ use BizyCore\Terminology;
 
 defined( 'ABSPATH' ) || exit;
 
-/** How BizyDocs shows up in BizyCore's shared places: links, search, messages, Home, department pages. */
+/** How BizyDoc shows up in BizyCore's shared places: links, search, messages, Home, department pages. */
 class Integrations {
 
 	public static function init() {
@@ -23,14 +23,14 @@ class Integrations {
 	}
 
 	private static function on() {
-		return Registry::enabled( 'docs' );
+		return Registry::enabled( 'doc' );
 	}
 
 	private static function can() {
-		return current_user_can( 'manage_options' ) || current_user_can( 'bizydocs_contracts' );
+		return current_user_can( 'manage_options' ) || current_user_can( 'bizydoc_contracts' );
 	}
 
-	/** The kinds of document BizyDocs keeps in BizyCore's lists. */
+	/** The kinds of document BizyDoc keeps in BizyCore's lists. */
 	public static function lookups( $d ) {
 		$d['doc_type']      = array(
 			array( 'contract', 'Contract', 0, '#2563eb' ),
@@ -42,7 +42,7 @@ class Integrations {
 		return $d;
 	}
 
-	/** BizyDocs' own settings reach the browser app in meta.settings. */
+	/** BizyDoc' own settings reach the browser app in meta.settings. */
 	public static function meta( $m ) {
 		if ( ! self::on() ) {
 			return $m;
@@ -66,7 +66,7 @@ class Integrations {
 	/* ---- links ---- */
 
 	public static function link_types() {
-		Links::register_type( 'contract', array( 'module' => 'docs', 'label' => 'Document', 'plural' => 'Documents', 'resolve' => array( __CLASS__, 'resolve_contract' ), 'search' => array( __CLASS__, 'search_contracts' ) ) );
+		Links::register_type( 'contract', array( 'module' => 'doc', 'label' => 'Document', 'plural' => 'Documents', 'resolve' => array( __CLASS__, 'resolve_contract' ), 'search' => array( __CLASS__, 'search_contracts' ) ) );
 	}
 
 	public static function resolve_contract( $id ) {
@@ -154,14 +154,14 @@ class Integrations {
 
 	public static function department_card( $card, $id, $from, $to ) {
 		if ( self::on() && self::can() ) {
-			$card['modules']['docs'] = array( 'waiting' => self::dept_docs( $id )['waiting'] );
+			$card['modules']['doc'] = array( 'waiting' => self::dept_docs( $id )['waiting'] );
 		}
 		return $card;
 	}
 
 	public static function department_detail( $data, $id, $from, $to ) {
 		if ( self::on() && self::can() ) {
-			$data['modules']['docs'] = self::dept_docs( $id );
+			$data['modules']['doc'] = self::dept_docs( $id );
 		}
 		return $data;
 	}

@@ -1,5 +1,5 @@
 <?php
-/** Removes BizyDocs data on uninstall, only when "Delete all Bizy data when the plugin is deleted" is on in BizyCore's settings. */
+/** Removes BizyDoc data on uninstall, only when "Delete all Bizy data when the plugin is deleted" is on in BizyCore's settings. */
 
 defined( 'WP_UNINSTALL_PLUGIN' ) || exit;
 
@@ -10,10 +10,10 @@ if ( empty( $core['delete_on_uninstall'] ) ) {
 	return;
 }
 
-foreach ( (array) $wpdb->get_col( $wpdb->prepare( 'SHOW TABLES LIKE %s', $wpdb->esc_like( $wpdb->prefix . 'bizydocs_' ) . '%' ) ) as $table ) {
+foreach ( (array) $wpdb->get_col( $wpdb->prepare( 'SHOW TABLES LIKE %s', $wpdb->esc_like( $wpdb->prefix . 'bizydoc_' ) . '%' ) ) as $table ) {
 	$wpdb->query( 'DROP TABLE IF EXISTS `' . esc_sql( $table ) . '`' ); // phpcs:ignore WordPress.DB
 }
-foreach ( (array) $wpdb->get_col( $wpdb->prepare( "SELECT option_name FROM $wpdb->options WHERE option_name LIKE %s", $wpdb->esc_like( 'bizydocs_' ) . '%' ) ) as $opt ) { // phpcs:ignore WordPress.DB
+foreach ( (array) $wpdb->get_col( $wpdb->prepare( "SELECT option_name FROM $wpdb->options WHERE option_name LIKE %s", $wpdb->esc_like( 'bizydoc_' ) . '%' ) ) as $opt ) { // phpcs:ignore WordPress.DB
 	delete_option( $opt );
 }
 

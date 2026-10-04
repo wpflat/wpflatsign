@@ -1,19 +1,19 @@
 <?php
-namespace BizyDocs;
+namespace BizyDoc;
 
 use BizyCore\Resources;
-use BizyDocs\Services\Contracts;
+use BizyDoc\Services\Contracts;
 
 defined( 'ABSPATH' ) || exit;
 
-/** BizyDocs' REST resources: templates, contracts (and other signed documents). */
+/** BizyDoc' REST resources: templates, contracts (and other signed documents). */
 class Resources_Def {
 
 	public static function register() {
 		$defs = array(
 			'contract-templates' => array(
 				'route'    => 'contract-templates',
-				'table'    => 'bizydocs_templates',
+				'table'    => 'bizydoc_templates',
 				'label'    => 'Contract template',
 				'cols'     => array( 'name' => 's', 'description' => 's', 'doc_type' => 's', 'body' => 'h', 'is_active' => 'b', 'department_id' => 'i' ),
 				'filters'  => array( 'is_active', 'department_id', 'doc_type' ),
@@ -33,7 +33,7 @@ class Resources_Def {
 
 			'contracts'       => array(
 				'route'    => 'contracts',
-				'table'    => 'bizydocs_contracts',
+				'table'    => 'bizydoc_contracts',
 				'label'    => 'Contract',
 				'select'   => ', c.name AS client_name, dp.name AS department_name, (SELECT COUNT(*) FROM ' . Schema::table( 'contract_signers' ) . ' sg WHERE sg.contract_id=t.id) AS signer_total, (SELECT COUNT(*) FROM ' . Schema::table( 'contract_signers' ) . " sg2 WHERE sg2.contract_id=t.id AND sg2.status='signed') AS signer_done",
 				'join'     => 'LEFT JOIN ' . Schema::table( 'clients' ) . ' c ON c.id=t.client_id LEFT JOIN ' . Schema::table( 'brands' ) . ' dp ON dp.id=t.department_id',
@@ -88,7 +88,7 @@ class Resources_Def {
 					}
 				},
 				'before_delete' => function ( $row ) {
-					return in_array( $row['status'], array( 'draft', 'void', 'declined' ), true ) ? true : new \WP_Error( 'bizydocs_blocked', 'A contract that is out for signature or signed is a legal record and cannot be deleted. Void it instead.', array( 'status' => 409 ) );
+					return in_array( $row['status'], array( 'draft', 'void', 'declined' ), true ) ? true : new \WP_Error( 'bizydoc_blocked', 'A contract that is out for signature or signed is a legal record and cannot be deleted. Void it instead.', array( 'status' => 409 ) );
 				},
 				'after_delete' => function ( $row ) {
 					global $wpdb;
@@ -118,7 +118,7 @@ class Resources_Def {
 			),
 		);
 		foreach ( $defs as $name => $cfg ) {
-			Resources::register( $name, $cfg, 'docs' );
+			Resources::register( $name, $cfg, 'doc' );
 		}
 	}
 }

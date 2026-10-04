@@ -17,7 +17,7 @@ watch( () => props.tick, load );
 
 <template>
 	<el-card shadow="never" class="bd-widget">
-		<template #header><div class="bd-widget__head"><span>Waiting for signature</span><a href="#" @click.prevent="goTab( 'docs' )">Open {{ sdk.tp( 'contract' ).toLowerCase() }}</a></div></template>
+		<template #header><div class="bd-widget__head"><span>Waiting for signature</span><a href="#" @click.prevent="goTab( 'doc' )">Open {{ sdk.tp( 'contract' ).toLowerCase() }}</a></div></template>
 		<ul class="bd-list">
 			<li v-for="c in items" :key="c.id">
 				<div><a class="bd-strong bd-link" :href="'#/contracts/' + c.id">{{ c.title }}</a><div class="bd-muted bd-small">{{ [ c.number, statusOf( c.status ).label, c.signer_done + '/' + c.signer_total + ' signed' ].join( ' · ' ) }}</div></div>

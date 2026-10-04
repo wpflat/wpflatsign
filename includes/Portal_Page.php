@@ -1,10 +1,10 @@
 <?php
-namespace BizyDocs;
+namespace BizyDoc;
 
 use BizyCore\Portal;
 use BizyCore\Services\Portal_Users;
-use BizyDocs\Services\Contract_Pdf;
-use BizyDocs\Services\Contracts;
+use BizyDoc\Services\Contract_Pdf;
+use BizyDoc\Services\Contracts;
 
 defined( 'ABSPATH' ) || exit;
 
@@ -13,7 +13,7 @@ class Portal_Page {
 
 	public static function register() {
 		Portal::register_page( 'contracts', array(
-			'module'   => 'docs',
+			'module'   => 'doc',
 			'label'    => 'Documents',
 			'order'    => 30,
 			'render'   => array( __CLASS__, 'render_contracts' ),

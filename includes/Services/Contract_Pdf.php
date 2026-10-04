@@ -1,7 +1,7 @@
 <?php
-namespace BizyDocs\Services;
+namespace BizyDoc\Services;
 
-use BizyDocs\Settings;
+use BizyDoc\Settings;
 
 defined( 'ABSPATH' ) || exit;
 
@@ -55,21 +55,21 @@ class Contract_Pdf {
 		global $wpdb;
 		$c = Contracts::get( $contract_id );
 		if ( ! $c || 'signed' !== $c['status'] ) {
-			return new \WP_Error( 'bizydocs_state', 'Only a fully signed contract has a signed PDF.', array( 'status' => 409 ) );
+			return new \WP_Error( 'bizydoc_state', 'Only a fully signed contract has a signed PDF.', array( 'status' => 409 ) );
 		}
 		if ( ! empty( $c['pdf_file'] ) ) {
-			return new \WP_Error( 'bizydocs_state', 'The signed PDF already exists and cannot be replaced.', array( 'status' => 409 ) );
+			return new \WP_Error( 'bizydoc_state', 'The signed PDF already exists and cannot be replaced.', array( 'status' => 409 ) );
 		}
 		try {
 			$bytes = self::render( $c );
 		} catch ( \Throwable $e ) {
 			Contracts::event( $contract_id, 0, 'pdf_failed', array( 'error' => mb_substr( $e->getMessage(), 0, 300 ) ) );
-			return new \WP_Error( 'bizydocs_pdf', 'The PDF could not be created: ' . $e->getMessage(), array( 'status' => 500 ) );
+			return new \WP_Error( 'bizydoc_pdf', 'The PDF could not be created: ' . $e->getMessage(), array( 'status' => 500 ) );
 		}
 		$name = strtolower( wp_generate_password( 24, false, false ) ) . '-' . sanitize_file_name( $c['number'] ) . '.pdf';
 		$path = self::dir() . '/' . $name;
 		if ( false === file_put_contents( $path, $bytes ) ) { // phpcs:ignore WordPress.WP.AlternativeFunctions
-			return new \WP_Error( 'bizydocs_pdf', 'The PDF could not be saved on the server.', array( 'status' => 500 ) );
+			return new \WP_Error( 'bizydoc_pdf', 'The PDF could not be saved on the server.', array( 'status' => 500 ) );
 		}
 		$hash = hash( 'sha256', $bytes );
 		$wpdb->update( Contracts::t( 'contracts' ), array( 'pdf_file' => $name, 'pdf_hash' => $hash, 'pdf_size' => strlen( $bytes ), 'pdf_at' => current_time( 'mysql' ) ), array( 'id' => (int) $contract_id ) );
@@ -79,9 +79,9 @@ class Contract_Pdf {
 
 	private static function load_engine() {
 		if ( ! class_exists( '\Dompdf\Dompdf', false ) ) {
-			require_once BIZYDOCS_DIR . 'lib/dompdf/autoload.inc.php';
+			require_once BIZYDOC_DIR . 'lib/dompdf/autoload.inc.php';
 		}
-		require_once BIZYDOCS_DIR . 'lib/qrcode.php';
+		require_once BIZYDOC_DIR . 'lib/qrcode.php';
 	}
 
 	private static function render( array $c ) {
@@ -97,7 +97,7 @@ class Contract_Pdf {
 		$opt->set( 'fontDir', $fonts );
 		$opt->set( 'fontCache', $fonts );
 		$opt->set( 'tempDir', $tmp );
-		$opt->set( 'chroot', array( BIZYDOCS_DIR, wp_upload_dir()['basedir'], \BizyCore\Paths::root() ) );
+		$opt->set( 'chroot', array( BIZYDOC_DIR, wp_upload_dir()['basedir'], \BizyCore\Paths::root() ) );
 		$opt->set( 'isRemoteEnabled', false );
 		$opt->set( 'isPhpEnabled', false );
 		$opt->set( 'isJavascriptEnabled', false );
@@ -278,7 +278,7 @@ class Contract_Pdf {
 			return '';
 		}
 		try {
-			$qr = \BizyDocs\Lib\QRCode::getMinimumQRCode( $text, QR_ERROR_CORRECT_LEVEL_M );
+			$qr = \BizyDoc\Lib\QRCode::getMinimumQRCode( $text, QR_ERROR_CORRECT_LEVEL_M );
 			$im = $qr->createImage( 6, 2 );
 			ob_start();
 			imagepng( $im );
@@ -416,7 +416,7 @@ CSS;
 			if ( ! $e['signer_id'] && $e['user_name'] ) {
 				$who = $e['user_name'];
 			}
-			$h .= '<tr><td style="white-space:nowrap">' . self::e( $e['created_at'] ) . '</td><td>' . self::e( \BizyDocs\Public_Contract::event_label( $e['event'] ) ) . '</td><td>' . self::e( $who ) . '</td><td>' . self::e( \BizyDocs\Public_Contract::event_summary( $e, true ) ) . '</td><td>' . self::e( $e['ip'] ) . '</td></tr>';
+			$h .= '<tr><td style="white-space:nowrap">' . self::e( $e['created_at'] ) . '</td><td>' . self::e( \BizyDoc\Public_Contract::event_label( $e['event'] ) ) . '</td><td>' . self::e( $who ) . '</td><td>' . self::e( \BizyDoc\Public_Contract::event_summary( $e, true ) ) . '</td><td>' . self::e( $e['ip'] ) . '</td></tr>';
 		}
 		$h .= '</table><div class="muted small" style="margin-top:10pt">Each audit row stores a SHA-256 hash that includes the previous row’s hash, so any later change to the history can be detected. Electronic signatures are legally recognised in most countries (including under the US ESIGN Act and UETA, the EU/UK eIDAS rules, and Nigeria’s Evidence Act). This certificate is a record, not legal advice.</div></div>';
 		$h .= '</body></html>';

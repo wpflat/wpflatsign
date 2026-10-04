@@ -1,11 +1,11 @@
 <?php
-namespace BizyDocs;
+namespace BizyDoc;
 
 use BizyCore\Registry;
 
 defined( 'ABSPATH' ) || exit;
 
-/** BizyDocs' connection to BizyCore: it describes itself, then hooks into the shared places. */
+/** BizyDoc' connection to BizyCore: it describes itself, then hooks into the shared places. */
 class Module {
 
 	public static function init() {
@@ -22,7 +22,7 @@ class Module {
 		Notify::init();
 		Legacy::init();
 		Demo::init();
-		if ( Registry::enabled( 'docs' ) || ! did_action( 'bizycore_ready' ) ) {
+		if ( Registry::enabled( 'doc' ) || ! did_action( 'bizycore_ready' ) ) {
 			Public_Contract::init();
 		}
 	}
@@ -30,44 +30,44 @@ class Module {
 	public static function register() {
 		bizycore_register_module(
 			array(
-				'id'            => 'docs',
+				'id'            => 'doc',
 				'label'         => 'Docs',
-				'version'       => BIZYDOCS_VERSION,
+				'version'       => BIZYDOC_VERSION,
 				'requires_core' => '0.1.0',
 				'desc'          => 'Contracts and agreements with e-signature, sealed PDFs and an audit trail.',
-				'icon'          => 'docs',
+				'icon'          => 'doc',
 				'route'         => '/contracts',
 				'routes'        => array( 'contracts' ),
-				'cap'           => 'bizydocs_contracts',
-				'caps'          => array( 'bizydocs_contracts' ),
+				'cap'           => 'bizydoc_contracts',
+				'caps'          => array( 'bizydoc_contracts' ),
 				'resources'     => array( 'contract-templates', 'contracts' ),
 				'tables'        => Schema::all() ? array_map( function ( $t ) {
 					return $t;
 				}, Schema::all() ) : array(),
-				'optional_tables' => array( 'bizydocs_otps' ),
-				'options'       => array( 'bizydocs_settings', 'bizydocs_contract_next' ),
+				'optional_tables' => array( 'bizydoc_otps' ),
+				'options'       => array( 'bizydoc_settings', 'bizydoc_contract_next' ),
 				'refs'          => array(
-					'bizydocs_contracts' => array( 'client_id' => 'bizy_clients', 'template_id' => 'bizydocs_templates' ),
-					'bizydocs_signers'   => array( 'contract_id' => 'bizydocs_contracts' ),
-					'bizydocs_events'    => array( 'contract_id' => 'bizydocs_contracts' ),
-					'bizydocs_otps'      => array( 'contract_id' => 'bizydocs_contracts' ),
+					'bizydoc_contracts' => array( 'client_id' => 'bizy_clients', 'template_id' => 'bizydoc_templates' ),
+					'bizydoc_signers'   => array( 'contract_id' => 'bizydoc_contracts' ),
+					'bizydoc_events'    => array( 'contract_id' => 'bizydoc_contracts' ),
+					'bizydoc_otps'      => array( 'contract_id' => 'bizydoc_contracts' ),
 				),
 				'file_kinds'    => array( 'contracts' ),
 				'public_paths'  => array( 'sign', 'verify', 'contract' ),
 				'public_params' => array( 'bd_certificate' ),
 				'roles'         => array(
-					'bizy_docs_team' => array( 'label' => 'Bizy Docs Team', 'desc' => 'Contracts, templates, e-signatures.', 'caps' => array( 'bizydocs_contracts' ) ),
+					'bizy_doc_team' => array( 'label' => 'Bizy Doc Team', 'desc' => 'Contracts, templates, e-signatures.', 'caps' => array( 'bizydoc_contracts' ) ),
 				),
-				'client_manager_caps' => array( 'bizydocs_contracts' ),
-				'manager_grants'      => array( 'docs' => array( 'label' => 'Documents', 'caps' => array( 'bizydocs_contracts' ) ) ),
+				'client_manager_caps' => array( 'bizydoc_contracts' ),
+				'manager_grants'      => array( 'doc' => array( 'label' => 'Documents', 'caps' => array( 'bizydoc_contracts' ) ) ),
 				'menu'          => array(
 					array( 'label' => 'Overview', 'route' => '/contracts' ),
 					array( 'label' => 'All documents', 'route' => '/contracts/all' ),
 					array( 'label' => 'Templates', 'route' => '/contracts/templates' ),
 					array( 'label' => 'Analytics', 'route' => '/contracts/analytics' ),
 				),
-				'assets'        => array( 'script' => 'bizydocs.js', 'style' => 'bizydocs.css' ),
-				'assets_dir'    => BIZYDOCS_DIR . 'build',
+				'assets'        => array( 'script' => 'bizydoc.js', 'style' => 'bizydoc.css' ),
+				'assets_dir'    => BIZYDOC_DIR . 'build',
 				'wp'            => array( 'dashicons-media-document', 29 ),
 			)
 		);
@@ -80,7 +80,7 @@ class Module {
 	/** After a restore, say whether every signed document still verifies (its audit log chain and its sealed PDF). */
 	public static function restore_integrity( $warn, $mods ) {
 		global $wpdb;
-		if ( ! Registry::enabled( 'docs' ) ) {
+		if ( ! Registry::enabled( 'doc' ) ) {
 			return $warn;
 		}
 		$bad = array();

@@ -1,12 +1,12 @@
 <?php
-namespace BizyDocs;
+namespace BizyDoc;
 
 defined( 'ABSPATH' ) || exit;
 
-/** BizyDocs' own settings. The business name, logo and address come from BizyCore, so the one profile is shared. */
+/** BizyDoc' own settings. The business name, logo and address come from BizyCore, so the one profile is shared. */
 class Settings {
 
-	const OPTION = 'bizydocs_settings';
+	const OPTION = 'bizydoc_settings';
 
 	public static function defaults() {
 		return array(

@@ -1,7 +1,7 @@
 <?php
-namespace BizyDocs\Services;
+namespace BizyDoc\Services;
 
-use BizyDocs\Schema;
+use BizyDoc\Schema;
 
 defined( 'ABSPATH' ) || exit;
 

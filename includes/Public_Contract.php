@@ -1,10 +1,10 @@
 <?php
-namespace BizyDocs;
+namespace BizyDoc;
 
 use BizyCore\Assets;
 
-use BizyDocs\Services\Contract_Pdf;
-use BizyDocs\Services\Contracts;
+use BizyDoc\Services\Contract_Pdf;
+use BizyDoc\Services\Contracts;
 
 defined( 'ABSPATH' ) || exit;
 
@@ -525,7 +525,7 @@ $('ct-decline').onclick=function(){var r=prompt('Optional: tell the sender why y
 		</div>
 	</div>
 	<?php if ( $integ['cert_id'] ) : ?>
-	<script><?php echo file_get_contents( BIZYDOCS_DIR . 'assets/qrcode.min.js' ); // phpcs:ignore WordPress.Security.EscapeOutput, WordPress.WP.AlternativeFunctions ?></script>
+	<script><?php echo file_get_contents( BIZYDOC_DIR . 'assets/qrcode.min.js' ); // phpcs:ignore WordPress.Security.EscapeOutput, WordPress.WP.AlternativeFunctions ?></script>
 	<script>(function(){try{var q=qrcode(0,'M');q.addData(<?php echo wp_json_encode( Contracts::verify_url( $integ['cert_id'] ) ); ?>);q.make();document.getElementById('ct-qr').innerHTML=q.createSvgTag({cellSize:3,margin:0,scalable:true})}catch(e){}})()</script>
 	<?php endif; ?>
 	<h2>Document</h2>

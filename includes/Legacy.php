@@ -1,5 +1,5 @@
 <?php
-namespace BizyDocs;
+namespace BizyDoc;
 
 use BizyCore\Migration\Legacy as Core_Legacy;
 use BizyCore\Migration\Reader;
@@ -33,8 +33,8 @@ class Legacy {
 		foreach ( self::TABLES as $new ) {
 			$had += (int) $wpdb->get_var( 'SELECT COUNT(*) FROM ' . Schema::table( $new ) ); // phpcs:ignore WordPress.DB
 		}
-		if ( $had && empty( Core_Legacy::module_state( 'docs' )['done'] ) ) {
-			return new \WP_Error( 'bizydocs_not_empty', 'BizyDocs already has records. Importing would mix them with the old ones. Remove them first, or skip this import.', array( 'status' => 409 ) );
+		if ( $had && empty( Core_Legacy::module_state( 'doc' )['done'] ) ) {
+			return new \WP_Error( 'bizydoc_not_empty', 'BizyDoc already has records. Importing would mix them with the old ones. Remove them first, or skip this import.', array( 'status' => 409 ) );
 		}
 		foreach ( self::TABLES as $new ) {
 			$wpdb->query( 'TRUNCATE TABLE ' . Schema::table( $new ) ); // phpcs:ignore WordPress.DB
@@ -98,7 +98,7 @@ class Legacy {
 		}
 		$opts = Core_Legacy::rest( 'options' );
 		if ( isset( $opts['bizydash_contract_next'] ) ) {
-			update_option( 'bizydocs_contract_next', (int) $opts['bizydash_contract_next'], false );
+			update_option( 'bizydoc_contract_next', (int) $opts['bizydash_contract_next'], false );
 		}
 		return $out;
 	}

@@ -1,5 +1,5 @@
 <?php
-namespace BizyDocs\Services;
+namespace BizyDoc\Services;
 
 defined( 'ABSPATH' ) || exit;
 
@@ -43,10 +43,10 @@ class Docx_Import {
 	/** @return array{title:string,html:string,warnings:string[]}|\WP_Error */
 	public static function from_file( $path, $fallback_title = '', $import_images = true ) {
 		if ( ! class_exists( '\ZipArchive' ) ) {
-			return new \WP_Error( 'bizydocs_import', 'This server cannot open Word files (the PHP zip extension is missing).', array( 'status' => 500 ) );
+			return new \WP_Error( 'bizydoc_import', 'This server cannot open Word files (the PHP zip extension is missing).', array( 'status' => 500 ) );
 		}
 		if ( ! is_readable( $path ) || filesize( $path ) > self::MAX_BYTES ) {
-			return new \WP_Error( 'bizydocs_import', 'That file is too large (limit 15 MB).', array( 'status' => 400 ) );
+			return new \WP_Error( 'bizydoc_import', 'That file is too large (limit 15 MB).', array( 'status' => 400 ) );
 		}
 		$head = (string) file_get_contents( $path, false, null, 0, 8 ); // phpcs:ignore WordPress.WP.AlternativeFunctions
 		if ( "\xD0\xCF\x11\xE0\xA1\xB1\x1A\xE1" === $head ) { // legacy .doc (OLE container)
@@ -65,17 +65,17 @@ class Docx_Import {
 		} elseif ( preg_match( '#drive\.google\.com/(?:file/d/|open\?id=|uc\?(?:[^"\s]*&)?id=)([A-Za-z0-9_-]{20,})#', $url, $m ) ) {
 			$dl = 'https://drive.google.com/uc?export=download&id=' . $m[1];
 		} elseif ( preg_match( '#docs\.google\.com/document/d/e/#', $url ) ) {
-			return new \WP_Error( 'bizydocs_import', 'That is a “published to the web” link. In Google Docs choose Share → “Anyone with the link” → Viewer, then paste that link instead.', array( 'status' => 400 ) );
+			return new \WP_Error( 'bizydoc_import', 'That is a “published to the web” link. In Google Docs choose Share → “Anyone with the link” → Viewer, then paste that link instead.', array( 'status' => 400 ) );
 		} else {
-			return new \WP_Error( 'bizydocs_import', 'Paste a Google Docs link (it starts with docs.google.com/document/d/…).', array( 'status' => 400 ) );
+			return new \WP_Error( 'bizydoc_import', 'Paste a Google Docs link (it starts with docs.google.com/document/d/…).', array( 'status' => 400 ) );
 		}
 		$res = wp_remote_get( $dl, array( 'timeout' => 30, 'redirection' => 6, 'limit_response_size' => self::MAX_BYTES + 1, 'user-agent' => 'Mozilla/5.0 (compatible; Bizy)' ) );
 		if ( is_wp_error( $res ) ) {
-			return new \WP_Error( 'bizydocs_import', 'Could not reach Google: ' . $res->get_error_message(), array( 'status' => 502 ) );
+			return new \WP_Error( 'bizydoc_import', 'Could not reach Google: ' . $res->get_error_message(), array( 'status' => 502 ) );
 		}
 		$body = wp_remote_retrieve_body( $res );
 		if ( 200 !== (int) wp_remote_retrieve_response_code( $res ) || 'PK' !== substr( $body, 0, 2 ) ) {
-			return new \WP_Error( 'bizydocs_import', 'Google would not give us the document. Open it in Google Docs → Share → set General access to “Anyone with the link” (Viewer), then try again.', array( 'status' => 400 ) );
+			return new \WP_Error( 'bizydoc_import', 'Google would not give us the document. Open it in Google Docs → Share → set General access to “Anyone with the link” (Viewer), then try again.', array( 'status' => 400 ) );
 		}
 		require_once ABSPATH . 'wp-admin/includes/file.php';
 		$tmp = wp_tempnam( 'bizydash-gdoc' );
@@ -127,7 +127,7 @@ class Docx_Import {
 		$this->import_images = (bool) $import_images;
 		$this->zip           = new \ZipArchive();
 		if ( true !== $this->zip->open( $path ) ) {
-			return new \WP_Error( 'bizydocs_import', 'That does not look like a Word document. Please upload a .doc or .docx file.', array( 'status' => 400 ) );
+			return new \WP_Error( 'bizydoc_import', 'That does not look like a Word document. Please upload a .doc or .docx file.', array( 'status' => 400 ) );
 		}
 		$total = 0;
 		for ( $i = 0; $i < $this->zip->numFiles; $i++ ) {
@@ -136,12 +136,12 @@ class Docx_Import {
 		}
 		if ( $total > 120 * 1048576 ) {
 			$this->zip->close();
-			return new \WP_Error( 'bizydocs_import', 'That document is too large to import.', array( 'status' => 400 ) );
+			return new \WP_Error( 'bizydoc_import', 'That document is too large to import.', array( 'status' => 400 ) );
 		}
 		$doc = $this->load_xml( 'word/document.xml' );
 		if ( ! $doc ) {
 			$this->zip->close();
-			return new \WP_Error( 'bizydocs_import', 'That does not look like a Word document (.doc or .docx).', array( 'status' => 400 ) );
+			return new \WP_Error( 'bizydoc_import', 'That does not look like a Word document (.doc or .docx).', array( 'status' => 400 ) );
 		}
 		$this->parse_styles( $this->load_xml( 'word/styles.xml' ) );
 		$this->parse_numbering( $this->load_xml( 'word/numbering.xml' ) );
@@ -155,7 +155,7 @@ class Docx_Import {
 		}
 		if ( ! $body ) {
 			$this->zip->close();
-			return new \WP_Error( 'bizydocs_import', 'The document appears to be empty.', array( 'status' => 400 ) );
+			return new \WP_Error( 'bizydoc_import', 'The document appears to be empty.', array( 'status' => 400 ) );
 		}
 		$html = $this->blocks( $body, true );
 
@@ -189,7 +189,7 @@ class Docx_Import {
 
 		$html = $this->tidy( $html );
 		if ( '' === trim( wp_strip_all_tags( $html, true ) ) && false === strpos( $html, '<img' ) ) {
-			return new \WP_Error( 'bizydocs_import', 'No text was found in that document.', array( 'status' => 400 ) );
+			return new \WP_Error( 'bizydoc_import', 'No text was found in that document.', array( 'status' => 400 ) );
 		}
 		return array(
 			'title'    => $this->title ? mb_substr( $this->title, 0, 180 ) : $fallback_title,
