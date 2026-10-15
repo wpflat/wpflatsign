@@ -6,10 +6,10 @@ defineProps( { department: { type: Object, default: () => ( {} ) }, q: { type: F
 </script>
 
 <template>
-	<div v-if="department.modules && department.modules.doc" class="bd-angrid bd-mt">
-		<ChartCard :title="sdk.tp( 'contract' )" sub="Most recent" :empty="!department.modules.doc.recent.length" :empty-text="'No ' + sdk.tp( 'contract' ).toLowerCase() + ' yet.'">
+	<div v-if="department.modules && department.modules.sign" class="bd-angrid bd-mt">
+		<ChartCard :title="sdk.tp( 'contract' )" sub="Most recent" :empty="!department.modules.sign.recent.length" :empty-text="'No ' + sdk.tp( 'contract' ).toLowerCase() + ' yet.'">
 			<template #tools><a class="bd-link bd-small" :href="'#' + q( '/contracts/all' )" @click.prevent="navigate( q( '/contracts/all' ) )">See all</a></template>
-			<el-table :data="department.modules.doc.recent" size="small">
+			<el-table :data="department.modules.sign.recent" size="small">
 				<el-table-column :label="sdk.t( 'contract' )" min-width="190"><template #default="{ row }"><a class="bd-link" :href="'#/contracts/' + row.id">{{ row.title }}</a><div class="bd-muted bd-small">{{ [ row.number, row.client_name ].filter( Boolean ).join( ' · ' ) }}</div></template></el-table-column>
 				<el-table-column label="Status" min-width="150"><template #default="{ row }"><span :class="[ 'bd-badge', 'bd-badge--' + statusOf( row.status ).tone ]">{{ statusOf( row.status ).label }}</span></template></el-table-column>
 				<el-table-column label="Sent" min-width="100" align="right"><template #default="{ row }">{{ row.sent_at ? fmtDate( row.sent_at ) : '—' }}</template></el-table-column>

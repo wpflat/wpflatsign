@@ -1,16 +1,16 @@
 <?php
-namespace BizyDoc;
+namespace BizySign;
 
 use BizyCore\Portal;
 use BizyCore\Services\Notifications as N;
 
 defined( 'ABSPATH' ) || exit;
 
-/** The notifications BizyDoc raises: a document waiting for signature, signed and declined. */
+/** The notifications BizySign raises: a document waiting for signature, signed and declined. */
 class Notify {
 
 	public static function init() {
-		add_action( 'bizydoc_contract_event', array( __CLASS__, 'on_contract_event' ), 10, 4 );
+		add_action( 'bizysign_contract_event', array( __CLASS__, 'on_contract_event' ), 10, 4 );
 	}
 
 	public static function types() {

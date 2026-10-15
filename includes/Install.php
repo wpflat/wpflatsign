@@ -1,13 +1,13 @@
 <?php
-namespace BizyDoc;
+namespace BizySign;
 
 defined( 'ABSPATH' ) || exit;
 
-/** BizyDoc' tables. */
+/** BizySign' tables. */
 class Install {
 
 	const DB_VERSION = '2';
-	const OPTION     = 'bizydoc_db_version';
+	const OPTION     = 'bizysign_db_version';
 
 	/** Cheap check on every request so an updated plugin upgrades itself. */
 	public static function maybe_upgrade() {

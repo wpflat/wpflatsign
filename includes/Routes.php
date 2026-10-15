@@ -1,20 +1,20 @@
 <?php
-namespace BizyDoc;
+namespace BizySign;
 
 use BizyCore\Rest\Resource_Controller;
 use BizyCore\Rest\Routes as Core_Routes;
-use BizyDoc\Services\ContractAnalytics;
-use BizyDoc\Services\Contract_Pdf;
-use BizyDoc\Services\Contracts;
-use BizyDoc\Services\Docx_Import;
+use BizySign\Services\ContractAnalytics;
+use BizySign\Services\Contract_Pdf;
+use BizySign\Services\Contracts;
+use BizySign\Services\Docx_Import;
 
 defined( 'ABSPATH' ) || exit;
 
-/** BizyDoc' REST routes (in BizyCore's bizycore/v1 namespace, gone when the module is off). */
+/** BizySign' REST routes (in BizyCore's bizycore/v1 namespace, gone when the module is off). */
 class Routes {
 
 	private static function reg( $route, $args ) {
-		Core_Routes::add( 'doc', $route, $args );
+		Core_Routes::add( 'sign', $route, $args );
 	}
 
 	private static function out( $x, $ok = null ) {
@@ -37,7 +37,7 @@ class Routes {
 		self::reg( '/contracts/(?P<id>\d+)/preview', array( 'methods' => 'POST', 'callback' => function ( $r ) {
 			$id = (int) $r['id'];
 			if ( ! Contracts::get( $id ) ) {
-				return new \WP_Error( 'bizydoc_not_found', 'Not found.', array( 'status' => 404 ) );
+				return new \WP_Error( 'bizysign_not_found', 'Not found.', array( 'status' => 404 ) );
 			}
 			$p = (array) $r->get_json_params();
 			if ( isset( $p['access'] ) ) {
@@ -57,7 +57,7 @@ class Routes {
 		self::reg( '/sign/(?P<token>[a-z0-9]{10,64})/submit', array( 'methods' => 'POST', 'callback' => function ( $r ) { return self::out( Contracts::sign( $r['token'], (array) $r->get_json_params() ) ); }, 'permission_callback' => $open ) );
 		self::reg( '/sign/(?P<token>[a-z0-9]{10,64})/decline', array( 'methods' => 'POST', 'callback' => function ( $r ) { $p = (array) $r->get_json_params(); return self::out( Contracts::decline( $r['token'], isset( $p['reason'] ) ? (string) $p['reason'] : '' ), array( 'ok' => true ) ); }, 'permission_callback' => $open ) );
 
-		self::reg( '/doc/settings', array(
+		self::reg( '/sign/settings', array(
 			array( 'methods' => 'GET', 'callback' => function () { return rest_ensure_response( array_intersect_key( Settings::get(), Settings::defaults() ) ); }, 'permission_callback' => $perm ),
 			array( 'methods' => 'POST', 'callback' => function ( $r ) { return rest_ensure_response( Settings::update( (array) $r->get_json_params() ) ); }, 'permission_callback' => array( Core_Routes::class, 'can_admin' ) ),
 		) );
@@ -69,13 +69,13 @@ class Routes {
 		if ( ! empty( $files['file']['tmp_name'] ) && is_uploaded_file( $files['file']['tmp_name'] ) ) {
 			$name = isset( $files['file']['name'] ) ? sanitize_file_name( $files['file']['name'] ) : 'document.docx';
 			if ( ! preg_match( '/\.docx?$/i', $name ) ) {
-				return new \WP_Error( 'bizydoc_import', 'Please choose a Word file (.doc or .docx).', array( 'status' => 400 ) );
+				return new \WP_Error( 'bizysign_import', 'Please choose a Word file (.doc or .docx).', array( 'status' => 400 ) );
 			}
 			$res = Docx_Import::from_file( $files['file']['tmp_name'], trim( str_replace( array( '-', '_' ), ' ', preg_replace( '/\.docx?$/i', '', $name ) ) ) );
 		} elseif ( $req->get_param( 'url' ) ) {
 			$res = Docx_Import::from_google( (string) $req->get_param( 'url' ) );
 		} else {
-			return new \WP_Error( 'bizydoc_import', 'Choose a Word file or paste a Google Docs link.', array( 'status' => 400 ) );
+			return new \WP_Error( 'bizysign_import', 'Choose a Word file or paste a Google Docs link.', array( 'status' => 400 ) );
 		}
 		return self::out( $res );
 	}

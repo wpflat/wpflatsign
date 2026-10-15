@@ -1,5 +1,5 @@
 <?php
-namespace BizyDocs\Lib;
+namespace BizySign\Lib;
 
 //---------------------------------------------------------------
 // QRCode for PHP5

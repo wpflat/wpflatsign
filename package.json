@@ -1,6 +1,6 @@
 {
-  "name": "bizydoc",
-  "version": "0.1.0",
+  "name": "bizysign",
+  "version": "0.2.0",
   "private": true,
   "type": "module",
   "description": "Contracts and agreements with e-signature, sealed PDFs, an audit trail and a verification page, for the Bizy suite.",

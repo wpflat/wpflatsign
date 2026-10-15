@@ -1,5 +1,5 @@
 <?php
-namespace BizyDoc\Services;
+namespace BizySign\Services;
 
 defined( 'ABSPATH' ) || exit;
 
@@ -42,14 +42,14 @@ class Doc_Import {
 	public static function from_file( $path, $fallback_title = '' ) {
 		$bytes = @file_get_contents( $path ); // phpcs:ignore WordPress.WP.AlternativeFunctions, WordPress.PHP.NoSilencedErrors
 		if ( false === $bytes || strlen( $bytes ) < 1024 ) {
-			return new \WP_Error( 'bizydoc_import', 'That file could not be read.', array( 'status' => 400 ) );
+			return new \WP_Error( 'bizysign_import', 'That file could not be read.', array( 'status' => 400 ) );
 		}
 		$i = new self();
 		return $i->run( $bytes, $fallback_title );
 	}
 
 	private static function err( $msg ) {
-		return new \WP_Error( 'bizydoc_import', $msg, array( 'status' => 400 ) );
+		return new \WP_Error( 'bizysign_import', $msg, array( 'status' => 400 ) );
 	}
 
 	/* ───────────────────────── Binary helpers ───────────────────────── */

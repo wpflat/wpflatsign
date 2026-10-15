@@ -5,7 +5,7 @@ defineProps( { department: { type: Object, default: () => ( {} ) }, q: { type: F
 </script>
 
 <template>
-	<el-col v-if="department.modules && department.modules.doc" :xs="12" :md="6">
-		<StatCard :label="sdk.tp( 'contract' ) + ' waiting'" sub="Out for signature" :tone="department.modules.doc.waiting ? 'warning' : ''" :to="q( '/contracts/all?status=sent' )">{{ department.modules.doc.waiting }}</StatCard>
+	<el-col v-if="department.modules && department.modules.sign" :xs="12" :md="6">
+		<StatCard :label="sdk.tp( 'contract' ) + ' waiting'" sub="Out for signature" :tone="department.modules.sign.waiting ? 'warning' : ''" :to="q( '/contracts/all?status=sent' )">{{ department.modules.sign.waiting }}</StatCard>
 	</el-col>
 </template>

@@ -1,14 +1,15 @@
 <?php
-namespace BizyDoc;
+namespace BizySign;
 
 use BizyCore\Registry;
 
 defined( 'ABSPATH' ) || exit;
 
-/** BizyDoc' connection to BizyCore: it describes itself, then hooks into the shared places. */
+/** BizySign' connection to BizyCore: it describes itself, then hooks into the shared places. */
 class Module {
 
 	public static function init() {
+		Migrate::init();
 		Install::maybe_upgrade();
 		add_action( 'bizycore_register', array( __CLASS__, 'register' ) );
 		add_action( 'bizycore_register_terms', array( __CLASS__, 'terms' ) );
@@ -22,7 +23,7 @@ class Module {
 		Notify::init();
 		Legacy::init();
 		Demo::init();
-		if ( Registry::enabled( 'doc' ) || ! did_action( 'bizycore_ready' ) ) {
+		if ( Registry::enabled( 'sign' ) || ! did_action( 'bizycore_ready' ) ) {
 			Public_Contract::init();
 		}
 	}
@@ -30,44 +31,44 @@ class Module {
 	public static function register() {
 		bizycore_register_module(
 			array(
-				'id'            => 'doc',
-				'label'         => 'Docs',
-				'version'       => BIZYDOC_VERSION,
-				'requires_core' => '0.1.0',
+				'id'            => 'sign',
+				'label'         => 'Sign',
+				'version'       => BIZYSIGN_VERSION,
+				'requires_core' => '0.3.2',
 				'desc'          => 'Contracts and agreements with e-signature, sealed PDFs and an audit trail.',
-				'icon'          => 'doc',
+				'icon'          => 'sign',
 				'route'         => '/contracts',
 				'routes'        => array( 'contracts' ),
-				'cap'           => 'bizydoc_contracts',
-				'caps'          => array( 'bizydoc_contracts' ),
+				'cap'           => 'bizysign_contracts',
+				'caps'          => array( 'bizysign_contracts' ),
 				'resources'     => array( 'contract-templates', 'contracts' ),
 				'tables'        => Schema::all() ? array_map( function ( $t ) {
 					return $t;
 				}, Schema::all() ) : array(),
-				'optional_tables' => array( 'bizydoc_otps' ),
-				'options'       => array( 'bizydoc_settings', 'bizydoc_contract_next' ),
+				'optional_tables' => array( 'bizysign_otps' ),
+				'options'       => array( 'bizysign_settings', 'bizysign_contract_next' ),
 				'refs'          => array(
-					'bizydoc_contracts' => array( 'client_id' => 'bizy_clients', 'template_id' => 'bizydoc_templates' ),
-					'bizydoc_signers'   => array( 'contract_id' => 'bizydoc_contracts' ),
-					'bizydoc_events'    => array( 'contract_id' => 'bizydoc_contracts' ),
-					'bizydoc_otps'      => array( 'contract_id' => 'bizydoc_contracts' ),
+					'bizysign_contracts' => array( 'client_id' => 'bizy_clients', 'template_id' => 'bizysign_templates' ),
+					'bizysign_signers'   => array( 'contract_id' => 'bizysign_contracts' ),
+					'bizysign_events'    => array( 'contract_id' => 'bizysign_contracts' ),
+					'bizysign_otps'      => array( 'contract_id' => 'bizysign_contracts' ),
 				),
 				'file_kinds'    => array( 'contracts' ),
 				'public_paths'  => array( 'sign', 'verify', 'contract' ),
 				'public_params' => array( 'bd_certificate' ),
 				'roles'         => array(
-					'bizy_doc_team' => array( 'label' => 'Bizy Doc Team', 'desc' => 'Contracts, templates, e-signatures.', 'caps' => array( 'bizydoc_contracts' ) ),
+					'bizy_sign_team' => array( 'label' => 'Bizy Sign Team', 'desc' => 'Contracts, templates, e-signatures.', 'caps' => array( 'bizysign_contracts' ) ),
 				),
-				'client_manager_caps' => array( 'bizydoc_contracts' ),
-				'manager_grants'      => array( 'doc' => array( 'label' => 'Documents', 'caps' => array( 'bizydoc_contracts' ) ) ),
+				'client_manager_caps' => array( 'bizysign_contracts' ),
+				'manager_grants'      => array( 'sign' => array( 'label' => 'Documents', 'caps' => array( 'bizysign_contracts' ) ) ),
 				'menu'          => array(
 					array( 'label' => 'Overview', 'route' => '/contracts' ),
 					array( 'label' => 'All documents', 'route' => '/contracts/all' ),
 					array( 'label' => 'Templates', 'route' => '/contracts/templates' ),
 					array( 'label' => 'Analytics', 'route' => '/contracts/analytics' ),
 				),
-				'assets'        => array( 'script' => 'bizydoc.js', 'style' => 'bizydoc.css' ),
-				'assets_dir'    => BIZYDOC_DIR . 'build',
+				'assets'        => array( 'script' => 'bizysign.js', 'style' => 'bizysign.css' ),
+				'assets_dir'    => BIZYSIGN_DIR . 'build',
 				'wp'            => array( 'dashicons-media-document', 29 ),
 			)
 		);
@@ -80,7 +81,7 @@ class Module {
 	/** After a restore, say whether every signed document still verifies (its audit log chain and its sealed PDF). */
 	public static function restore_integrity( $warn, $mods ) {
 		global $wpdb;
-		if ( ! Registry::enabled( 'doc' ) ) {
+		if ( ! Registry::enabled( 'sign' ) ) {
 			return $warn;
 		}
 		$bad = array();

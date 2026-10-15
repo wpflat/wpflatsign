@@ -1,6 +1,6 @@
 name: Release
 
-# Push a tag like v0.1.0 (it must match the "Version:" line in bizydoc.php) and this attaches an installable zip to a GitHub release.
+# Push a tag like v0.1.0 (it must match the "Version:" line in bizysign.php) and this attaches an installable zip to a GitHub release.
 on:
   push:
     tags: [ 'v*' ]
@@ -14,29 +14,29 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          path: bizydoc
+          path: bizysign
 
       - name: Check the tag matches the plugin version
         run: |
-          V=$(grep -m1 '^ \* Version:' bizydoc/bizydoc.php | awk '{print $3}')
+          V=$(grep -m1 '^ \* Version:' bizysign/bizysign.php | awk '{print $3}')
           if [ "v$V" != "$GITHUB_REF_NAME" ]; then
-            echo "Tag $GITHUB_REF_NAME does not match Version: $V in bizydoc.php" >&2
+            echo "Tag $GITHUB_REF_NAME does not match Version: $V in bizysign.php" >&2
             exit 1
           fi
           echo "VERSION=$V" >> "$GITHUB_ENV"
 
       - name: Build the zip (the plugin folder, without development files)
         run: |
-          zip -rq "bizydoc-$VERSION.zip" bizydoc \
-            -x "bizydoc/.git/*" "bizydoc/.github/*" "bizydoc/.gitignore" "bizydoc/ui/*" "bizydoc/vite*.js" "bizydoc/package*.json" "bizydoc/API.md" \
-               "bizydoc/node_modules/*" "bizydoc/lib/dompdf/tests/*" '*.DS_Store'
-          cp "bizydoc-$VERSION.zip" bizydoc.zip   # a stable name, so .../releases/latest/download/bizydoc.zip always works
-          unzip -l bizydoc.zip | tail -1
+          zip -rq "bizysign-$VERSION.zip" bizysign \
+            -x "bizysign/.git/*" "bizysign/.github/*" "bizysign/.gitignore" "bizysign/ui/*" "bizysign/vite*.js" "bizysign/package*.json" "bizysign/API.md" \
+               "bizysign/node_modules/*" "bizysign/lib/dompdf/tests/*" '*.DS_Store'
+          cp "bizysign-$VERSION.zip" bizysign.zip   # a stable name, so .../releases/latest/download/bizysign.zip always works
+          unzip -l bizysign.zip | tail -1
 
       - name: Publish the release
         uses: softprops/action-gh-release@v2
         with:
           files: |
-            bizydoc-${{ env.VERSION }}.zip
-            bizydoc.zip
+            bizysign-${{ env.VERSION }}.zip
+            bizysign.zip
           generate_release_notes: true

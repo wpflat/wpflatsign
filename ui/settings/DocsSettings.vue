@@ -9,7 +9,7 @@ const saving = ref( false );
 
 const load = async () => {
 	try {
-		Object.assign( form, await api.getPath( 'doc/settings' ) );
+		Object.assign( form, await api.getPath( 'sign/settings' ) );
 		loaded.value = true;
 	} catch ( e ) {
 		ElMessage.error( errorMessage( e ) );
@@ -20,7 +20,7 @@ onMounted( load );
 const save = async () => {
 	saving.value = true;
 	try {
-		Object.assign( form, await api.post( 'doc/settings', { ...form } ) );
+		Object.assign( form, await api.post( 'sign/settings', { ...form } ) );
 		store.meta = await api.getPath( 'meta' );
 		ElMessage.success( 'Document settings saved' );
 	} catch ( e ) {

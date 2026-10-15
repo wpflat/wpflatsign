@@ -1,11 +1,11 @@
 <?php
-namespace BizyDoc\Services;
+namespace BizySign\Services;
 
 use BizyCore\Services\Mailer;
 use BizyCore\Services\Activity;
 
-use BizyDoc\Schema;
-use BizyDoc\Settings;
+use BizySign\Schema;
+use BizySign\Settings;
 
 defined( 'ABSPATH' ) || exit;
 
@@ -34,7 +34,7 @@ class Contracts {
 
 	public static function next_number() {
 		global $wpdb;
-		$n = (int) get_option( 'bizydoc_contract_next', 0 );
+		$n = (int) get_option( 'bizysign_contract_next', 0 );
 		if ( $n < 1 ) {
 			$n = 1 + (int) $wpdb->get_var( 'SELECT COUNT(*) FROM ' . self::t( 'contracts' ) ); // phpcs:ignore WordPress.DB
 		}
@@ -43,7 +43,7 @@ class Contracts {
 			$exists = $wpdb->get_var( $wpdb->prepare( 'SELECT id FROM ' . self::t( 'contracts' ) . ' WHERE number=%s', $num ) ); // phpcs:ignore WordPress.DB
 			$n++;
 		} while ( $exists );
-		update_option( 'bizydoc_contract_next', $n, false );
+		update_option( 'bizysign_contract_next', $n, false );
 		return $num;
 	}
 
@@ -145,7 +145,7 @@ class Contracts {
 			)
 		);
 		$wpdb->get_var( $wpdb->prepare( 'SELECT RELEASE_LOCK(%s)', $lock ) ); // phpcs:ignore WordPress.DB
-		do_action( 'bizydoc_contract_event', (int) $contract_id, (int) $signer_id, $event, $detail );
+		do_action( 'bizysign_contract_event', (int) $contract_id, (int) $signer_id, $event, $detail );
 		return $hash;
 	}
 
@@ -217,12 +217,12 @@ class Contracts {
 		global $wpdb;
 		$email = sanitize_email( $email );
 		if ( ! is_email( $email ) ) {
-			return new \WP_Error( 'bizydoc_invalid', 'Please enter a valid email address.', array( 'status' => 400 ) );
+			return new \WP_Error( 'bizysign_invalid', 'Please enter a valid email address.', array( 'status' => 400 ) );
 		}
 		$ipkey = 'bd_pvr_' . md5( self::ip() . '|' . $c['id'] );
 		$n     = (int) get_transient( $ipkey );
 		if ( $n >= 8 ) {
-			return new \WP_Error( 'bizydoc_rate', 'Too many attempts. Please wait a while and try again.', array( 'status' => 429 ) );
+			return new \WP_Error( 'bizysign_rate', 'Too many attempts. Please wait a while and try again.', array( 'status' => 429 ) );
 		}
 		set_transient( $ipkey, $n + 1, HOUR_IN_SECONDS );
 
@@ -234,7 +234,7 @@ class Contracts {
 		$tbl  = self::t( 'contract_otps' );
 		$hour = (int) $wpdb->get_var( $wpdb->prepare( "SELECT COUNT(*) FROM $tbl WHERE signer_id=%d AND purpose='view' AND sent_at > %s", $sg['id'], gmdate( 'Y-m-d H:i:s', time() - HOUR_IN_SECONDS ) ) ); // phpcs:ignore WordPress.DB
 		if ( $hour >= self::OTP_HOURLY ) {
-			return new \WP_Error( 'bizydoc_rate', 'Too many codes requested. Please wait a while and try again.', array( 'status' => 429 ) );
+			return new \WP_Error( 'bizysign_rate', 'Too many codes requested. Please wait a while and try again.', array( 'status' => 429 ) );
 		}
 		$wpdb->update( $tbl, array( 'status' => 'superseded' ), array( 'signer_id' => $sg['id'], 'status' => 'sent', 'purpose' => 'view' ) );
 		$code = str_pad( (string) random_int( 0, 999999 ), 6, '0', STR_PAD_LEFT );
@@ -250,7 +250,7 @@ class Contracts {
 		global $wpdb;
 		$sg   = self::signer_by_email( $c['id'], sanitize_email( $email ) );
 		$code = preg_replace( '/\D/', '', (string) $code );
-		$bad  = new \WP_Error( 'bizydoc_otp', 'That code is not right, or it has expired. Please request a new one.', array( 'status' => 400 ) );
+		$bad  = new \WP_Error( 'bizysign_otp', 'That code is not right, or it has expired. Please request a new one.', array( 'status' => 400 ) );
 		if ( ! $sg ) {
 			return $bad;
 		}
@@ -504,26 +504,26 @@ class Contracts {
 		global $wpdb;
 		$c = self::get( $id );
 		if ( ! $c ) {
-			return new \WP_Error( 'bizydoc_not_found', 'Not found.', array( 'status' => 404 ) );
+			return new \WP_Error( 'bizysign_not_found', 'Not found.', array( 'status' => 404 ) );
 		}
 		if ( 'draft' !== $c['status'] ) {
-			return new \WP_Error( 'bizydoc_state', 'This contract was already sent.', array( 'status' => 409 ) );
+			return new \WP_Error( 'bizysign_state', 'This contract was already sent.', array( 'status' => 409 ) );
 		}
 		$signers = self::signers( $id );
 		if ( ! $signers ) {
-			return new \WP_Error( 'bizydoc_invalid', 'Add at least one person who needs to sign.', array( 'status' => 400 ) );
+			return new \WP_Error( 'bizysign_invalid', 'Add at least one person who needs to sign.', array( 'status' => 400 ) );
 		}
 		foreach ( $signers as $sg ) {
 			if ( '' === $sg['name'] || ! is_email( $sg['email'] ) ) {
-				return new \WP_Error( 'bizydoc_invalid', 'Every signer needs a name and a valid email address.', array( 'status' => 400 ) );
+				return new \WP_Error( 'bizysign_invalid', 'Every signer needs a name and a valid email address.', array( 'status' => 400 ) );
 			}
 		}
 		if ( '' === trim( wp_strip_all_tags( (string) $c['body'] ) ) ) {
-			return new \WP_Error( 'bizydoc_invalid', 'The contract has no text yet.', array( 'status' => 400 ) );
+			return new \WP_Error( 'bizysign_invalid', 'The contract has no text yet.', array( 'status' => 400 ) );
 		}
 		$c['body'] = self::merge( $c['body'], $c );
 		if ( preg_match( '/\{\{\s*[a-z_]+\s*\}\}/i', $c['body'], $m ) ) {
-			return new \WP_Error( 'bizydoc_invalid', 'The text still contains an empty field: ' . $m[0] . '. Fill it in or remove it first.', array( 'status' => 400 ) );
+			return new \WP_Error( 'bizysign_invalid', 'The text still contains an empty field: ' . $m[0] . '. Fill it in or remove it first.', array( 'status' => 400 ) );
 		}
 		$hash = self::doc_hash( $c );
 		$now  = current_time( 'mysql' );
@@ -545,7 +545,7 @@ class Contracts {
 	public static function remind( $id ) {
 		$c = self::get( $id );
 		if ( ! $c || ! in_array( $c['status'], array( 'sent', 'partially_signed' ), true ) ) {
-			return new \WP_Error( 'bizydoc_state', 'Only contracts waiting for signatures can be reminded.', array( 'status' => 409 ) );
+			return new \WP_Error( 'bizysign_state', 'Only contracts waiting for signatures can be reminded.', array( 'status' => 409 ) );
 		}
 		$n = 0;
 		foreach ( self::signers( $id ) as $sg ) {
@@ -561,7 +561,7 @@ class Contracts {
 		global $wpdb;
 		$c = self::get( $id );
 		if ( ! $c || in_array( $c['status'], array( 'draft', 'signed', 'void' ), true ) ) {
-			return new \WP_Error( 'bizydoc_state', 'Only contracts that are out for signature can be voided. A fully signed contract is a permanent record.', array( 'status' => 409 ) );
+			return new \WP_Error( 'bizysign_state', 'Only contracts that are out for signature can be voided. A fully signed contract is a permanent record.', array( 'status' => 409 ) );
 		}
 		$wpdb->update( self::t( 'contracts' ), array( 'status' => 'void', 'updated_at' => current_time( 'mysql' ) ), array( 'id' => $id ) );
 		self::event( $id, 0, 'voided', array( 'reason' => sanitize_text_field( $reason ) ) );
@@ -586,13 +586,13 @@ class Contracts {
 
 	public static function can_sign( array $c, array $sg ) {
 		if ( ! in_array( $c['status'], array( 'sent', 'partially_signed' ), true ) ) {
-			return new \WP_Error( 'bizydoc_state', 'This contract is no longer open for signing.', array( 'status' => 409 ) );
+			return new \WP_Error( 'bizysign_state', 'This contract is no longer open for signing.', array( 'status' => 409 ) );
 		}
 		if ( ! empty( $c['expires_on'] ) && $c['expires_on'] < gmdate( 'Y-m-d' ) ) {
-			return new \WP_Error( 'bizydoc_state', 'This signing link has expired. Please ask for a new one.', array( 'status' => 410 ) );
+			return new \WP_Error( 'bizysign_state', 'This signing link has expired. Please ask for a new one.', array( 'status' => 410 ) );
 		}
 		if ( 'signed' === $sg['status'] || 'declined' === $sg['status'] ) {
-			return new \WP_Error( 'bizydoc_state', 'You have already responded to this contract.', array( 'status' => 409 ) );
+			return new \WP_Error( 'bizysign_state', 'You have already responded to this contract.', array( 'status' => 409 ) );
 		}
 		return true;
 	}
@@ -601,12 +601,12 @@ class Contracts {
 	private static function clean_signature( array $p ) {
 		$name = isset( $p['name'] ) ? trim( sanitize_text_field( $p['name'] ) ) : '';
 		if ( strlen( $name ) < 2 ) {
-			return new \WP_Error( 'bizydoc_invalid', 'Please type your full name.', array( 'status' => 400 ) );
+			return new \WP_Error( 'bizysign_invalid', 'Please type your full name.', array( 'status' => 400 ) );
 		}
 		$method = isset( $p['method'] ) && 'drawn' === $p['method'] ? 'drawn' : 'typed';
 		$img    = isset( $p['image'] ) ? (string) $p['image'] : '';
 		if ( '' === $img || 0 !== strpos( $img, 'data:image/png;base64,' ) || strlen( $img ) > 300000 || ! preg_match( '#^data:image/png;base64,[A-Za-z0-9+/=]+$#', $img ) ) {
-			return new \WP_Error( 'bizydoc_invalid', 'Please add your signature.', array( 'status' => 400 ) );
+			return new \WP_Error( 'bizysign_invalid', 'Please add your signature.', array( 'status' => 400 ) );
 		}
 		return array( 'name' => $name, 'method' => $method, 'image' => $img );
 	}
@@ -616,7 +616,7 @@ class Contracts {
 		global $wpdb;
 		$f = self::signer_by_token( $token );
 		if ( ! $f ) {
-			return new \WP_Error( 'bizydoc_not_found', 'This link is not valid.', array( 'status' => 404 ) );
+			return new \WP_Error( 'bizysign_not_found', 'This link is not valid.', array( 'status' => 404 ) );
 		}
 		$c  = $f['contract'];
 		$sg = $f['signer'];
@@ -625,7 +625,7 @@ class Contracts {
 			return $ok;
 		}
 		if ( empty( $p['consent'] ) ) {
-			return new \WP_Error( 'bizydoc_invalid', 'Please tick the box to agree to sign electronically.', array( 'status' => 400 ) );
+			return new \WP_Error( 'bizysign_invalid', 'Please tick the box to agree to sign electronically.', array( 'status' => 400 ) );
 		}
 		$sig = self::clean_signature( $p );
 		if ( is_wp_error( $sig ) ) {
@@ -634,11 +634,11 @@ class Contracts {
 		$tbl  = self::t( 'contract_otps' );
 		$hour = $wpdb->get_var( $wpdb->prepare( "SELECT COUNT(*) FROM $tbl WHERE signer_id=%d AND purpose='sign' AND sent_at > %s", $sg['id'], gmdate( 'Y-m-d H:i:s', time() - HOUR_IN_SECONDS ) ) ); // phpcs:ignore WordPress.DB
 		if ( (int) $hour >= self::OTP_HOURLY ) {
-			return new \WP_Error( 'bizydoc_rate', 'Too many codes requested. Please wait a while and try again.', array( 'status' => 429 ) );
+			return new \WP_Error( 'bizysign_rate', 'Too many codes requested. Please wait a while and try again.', array( 'status' => 429 ) );
 		}
 		$last = $wpdb->get_var( $wpdb->prepare( "SELECT sent_at FROM $tbl WHERE signer_id=%d AND purpose='sign' ORDER BY id DESC LIMIT 1", $sg['id'] ) ); // phpcs:ignore WordPress.DB
 		if ( $last && ( time() - strtotime( $last . ' UTC' ) ) < 30 ) {
-			return new \WP_Error( 'bizydoc_rate', 'A code was just sent. You can ask for another in a few seconds.', array( 'status' => 429 ) );
+			return new \WP_Error( 'bizysign_rate', 'A code was just sent. You can ask for another in a few seconds.', array( 'status' => 429 ) );
 		}
 
 		$wpdb->update( $tbl, array( 'status' => 'superseded' ), array( 'signer_id' => $sg['id'], 'status' => 'sent', 'purpose' => 'sign' ) );
@@ -670,7 +670,7 @@ class Contracts {
 		self::event( $c['id'], $sg['id'], 'consent_given', array( 'text' => self::CONSENT_TEXT, 'typed_name' => $sig['name'], 'document_sha256' => $c['body_hash'] ) );
 		self::event( $c['id'], $sg['id'], 'otp_sent', array( 'to' => $sg['email'], 'code' => $code, 'mail_accepted' => (bool) $res['ok'], 'error' => $res['ok'] ? '' : $res['error'], 'expires_in_seconds' => self::OTP_TTL ) );
 		if ( ! $res['ok'] ) {
-			return new \WP_Error( 'bizydoc_mail', 'We could not email the code. Please try again, or contact the sender.', array( 'status' => 502 ) );
+			return new \WP_Error( 'bizysign_mail', 'We could not email the code. Please try again, or contact the sender.', array( 'status' => 502 ) );
 		}
 		$at = explode( '@', $sg['email'] );
 		return array( 'sent_to' => substr( $at[0], 0, 2 ) . str_repeat( '•', max( 1, strlen( $at[0] ) - 2 ) ) . '@' . ( isset( $at[1] ) ? $at[1] : '' ), 'expires_in' => self::OTP_TTL );
@@ -681,7 +681,7 @@ class Contracts {
 		global $wpdb;
 		$f = self::signer_by_token( $token );
 		if ( ! $f ) {
-			return new \WP_Error( 'bizydoc_not_found', 'This link is not valid.', array( 'status' => 404 ) );
+			return new \WP_Error( 'bizysign_not_found', 'This link is not valid.', array( 'status' => 404 ) );
 		}
 		$c  = $f['contract'];
 		$sg = $f['signer'];
@@ -694,26 +694,26 @@ class Contracts {
 			return $sig;
 		}
 		if ( empty( $p['consent'] ) ) {
-			return new \WP_Error( 'bizydoc_invalid', 'Please tick the box to agree to sign electronically.', array( 'status' => 400 ) );
+			return new \WP_Error( 'bizysign_invalid', 'Please tick the box to agree to sign electronically.', array( 'status' => 400 ) );
 		}
 		$entered = isset( $p['code'] ) ? preg_replace( '/\D/', '', (string) $p['code'] ) : '';
 		$otbl    = self::t( 'contract_otps' );
 		$otp     = $wpdb->get_row( $wpdb->prepare( "SELECT * FROM $otbl WHERE signer_id=%d AND purpose='sign' AND status='sent' ORDER BY id DESC LIMIT 1", $sg['id'] ), ARRAY_A ); // phpcs:ignore WordPress.DB
 		if ( ! $otp ) {
-			return new \WP_Error( 'bizydoc_otp', 'Please request a new code.', array( 'status' => 400 ) );
+			return new \WP_Error( 'bizysign_otp', 'Please request a new code.', array( 'status' => 400 ) );
 		}
 		$now = gmdate( 'Y-m-d H:i:s' );
 		if ( $otp['expires_at'] < $now ) {
 			$wpdb->update( $otbl, array( 'status' => 'expired', 'entered_code' => substr( $entered, 0, 10 ), 'entered_at' => $now ), array( 'id' => $otp['id'] ) );
 			self::event( $c['id'], $sg['id'], 'otp_expired', array( 'entered' => $entered ) );
-			return new \WP_Error( 'bizydoc_otp', 'That code has expired. Please request a new one.', array( 'status' => 400 ) );
+			return new \WP_Error( 'bizysign_otp', 'That code has expired. Please request a new one.', array( 'status' => 400 ) );
 		}
 		$attempts = (int) $otp['attempts'] + 1;
 		if ( ! hash_equals( (string) $otp['code'], $entered ) ) {
 			$burn = $attempts >= self::OTP_ATTEMPTS;
 			$wpdb->update( $otbl, array( 'attempts' => $attempts, 'entered_code' => substr( $entered, 0, 10 ), 'entered_at' => $now, 'status' => $burn ? 'failed' : 'sent' ), array( 'id' => $otp['id'] ) );
 			self::event( $c['id'], $sg['id'], 'otp_failed', array( 'entered' => $entered, 'attempt' => $attempts ) );
-			return new \WP_Error( 'bizydoc_otp', $burn ? 'Too many wrong codes. Please request a new one.' : 'That code is not right. Please check your email and try again.', array( 'status' => 400 ) );
+			return new \WP_Error( 'bizysign_otp', $burn ? 'Too many wrong codes. Please request a new one.' : 'That code is not right. Please check your email and try again.', array( 'status' => 400 ) );
 		}
 		$wpdb->update( $otbl, array( 'attempts' => $attempts, 'entered_code' => $entered, 'entered_at' => $now, 'status' => 'verified' ), array( 'id' => $otp['id'] ) );
 		self::event( $c['id'], $sg['id'], 'otp_verified', array( 'entered' => $entered, 'sent_code' => $otp['code'], 'match' => true, 'email' => $sg['email'] ) );
@@ -769,7 +769,7 @@ class Contracts {
 		global $wpdb;
 		$f = self::signer_by_token( $token );
 		if ( ! $f ) {
-			return new \WP_Error( 'bizydoc_not_found', 'This link is not valid.', array( 'status' => 404 ) );
+			return new \WP_Error( 'bizysign_not_found', 'This link is not valid.', array( 'status' => 404 ) );
 		}
 		$ok = self::can_sign( $f['contract'], $f['signer'] );
 		if ( is_wp_error( $ok ) ) {
