@@ -4,7 +4,7 @@ Contracts and agreements with e-signature, sealed PDFs, an audit trail and a ver
 
 Needs BizyCore.
 
-Part of the **Bizy** suite (BizyCore, BizyTasks, BizyMoney, BizySign, BizyFiles). Each plugin has its own repository and installs on its own; the modules need BizyCore.
+Part of the **Bizy** suite (BizyCore, BizyTasks, BizyFinance, BizySign, BizyFiles). Each plugin has its own repository and installs on its own; the modules need BizyCore.
 
 ## Install
 
