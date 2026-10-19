@@ -2,7 +2,7 @@
 /**
  * Plugin Name: BizySign
  * Description: Contracts and agreements with e-signature, sealed PDFs and an audit trail. Needs BizyCore.
- * Version: 0.2.0
+ * Version: 0.2.1
  * Requires at least: 6.0
  * Requires PHP: 7.4
  * Author: Digitalzooks
@@ -12,7 +12,7 @@
 
 defined( 'ABSPATH' ) || exit;
 
-define( 'BIZYSIGN_VERSION', '0.2.0' );
+define( 'BIZYSIGN_VERSION', '0.2.1' );
 define( 'BIZYSIGN_FILE', __FILE__ );
 define( 'BIZYSIGN_DIR', plugin_dir_path( __FILE__ ) );
 define( 'BIZYSIGN_URL', plugin_dir_url( __FILE__ ) );

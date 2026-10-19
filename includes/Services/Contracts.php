@@ -479,9 +479,7 @@ class Contracts {
 	/* ───────────────────────── Sending ───────────────────────── */
 
 	private static function wrap_mail( $title, $body_html ) {
-		$s    = Settings::get();
-		$logo = $s['business_logo_email_url'] ? '<img src="' . esc_url( $s['business_logo_email_url'] ) . '" alt="" style="height:36px;width:auto;margin-bottom:18px">' : '<div style="font-weight:700;font-size:16px;margin-bottom:18px">' . esc_html( $s['business_name'] ) . '</div>';
-		return '<div style="background:#f3f5f8;padding:28px 12px;font-family:Inter,Arial,sans-serif;color:#0e121b"><div style="max-width:520px;margin:0 auto;background:#fff;border-radius:14px;padding:30px">' . $logo . '<h2 style="margin:0 0 14px;font-size:19px">' . esc_html( $title ) . '</h2>' . $body_html . '<p style="color:#868e9d;font-size:12px;margin-top:26px">Sent by ' . esc_html( $s['business_name'] ) . '. If you did not expect this email you can ignore it.</p></div></div>';
+		return \BizyCore\Services\Email_Template::wrap( $body_html, array( 'title' => $title ) );
 	}
 
 	private static function button( $url, $label ) {
