@@ -4,7 +4,7 @@ Contracts and agreements with e-signature, sealed PDFs, an audit trail and a ver
 
 Needs WPFlat Core.
 
-Part of the **WPFlat** suite (WPFlat Core, WPFlat Tasks, WPFlat Finance, WPFlat Sign, WPFlat Files). Each plugin has its own repository and installs on its own; the modules need WPFlat Core.
+Part of the **WPFlat** suite (WPFlat Core, WPFlat Tasks, WPFlat Finance, WPFlat Invoice, WPFlat Sign, WPFlat Files). Each plugin has its own repository and installs on its own; the modules need WPFlat Core.
 
 ## Install
 
@@ -17,6 +17,6 @@ npm install
 npm run build      # rebuilds build/ from ui/
 ```
 
-PHP lives in `includes/`, the Vue source in `ui/`. The shared test suites and deploy tools live in the WPFlat workspace (`wpflat/` next to this folder).
+PHP lives in `includes/`, the Vue source in `ui/`. The shared test suites and deploy tools live in the WPFlat workspace (`wpflat-suite/` next to this folder).
 
 License: GPL-2.0-or-later.
