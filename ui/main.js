@@ -19,6 +19,7 @@ const M = 'sign';
 sdk.registerIcon( 'sign', FileSignature );
 sdk.registerFieldType( 'richtext', RichText );
 
+sdk.registerQuickAdd?.( M, [ { label: 'New document', route: '/contracts/all?new=1' } ] );
 sdk.registerRoute( { path: '/contracts', module: M, component: ContractsOverview } );
 // One two-part route: a list tab (all, templates, analytics) or a document. PHP links and notifications use #/contracts/<id>; "new" starts a draft.
 sdk.registerRoute( { path: '/contracts/:tab', module: M, component: DocsRoute } );
