@@ -25,8 +25,8 @@ class Routes {
 		$perm = array( Resource_Controller::class, 'can' );
 		$open = '__return_true'; // signers are not logged in; the unguessable link plus an emailed one-time code authorise them.
 
-		self::reg( '/contracts/(?P<id>\d+)/send', array( 'methods' => 'POST', 'callback' => function ( $r ) { return self::out( Contracts::send( (int) $r['id'] ) ); }, 'permission_callback' => $perm ) );
-		self::reg( '/contracts/(?P<id>\d+)/remind', array( 'methods' => 'POST', 'callback' => function ( $r ) { return self::out( Contracts::remind( (int) $r['id'] ) ); }, 'permission_callback' => $perm ) );
+		self::reg( '/contracts/(?P<id>\d+)/send', array( 'methods' => 'POST', 'callback' => function ( $r ) { $p = (array) $r->get_json_params(); return self::out( Contracts::send( (int) $r['id'], isset( $p['from_email'] ) ? (string) $p['from_email'] : '' ) ); }, 'permission_callback' => $perm ) );
+		self::reg( '/contracts/(?P<id>\d+)/remind', array( 'methods' => 'POST', 'callback' => function ( $r ) { $p = (array) $r->get_json_params(); return self::out( Contracts::remind( (int) $r['id'], isset( $p['from_email'] ) ? (string) $p['from_email'] : null ) ); }, 'permission_callback' => $perm ) );
 		self::reg( '/contracts/(?P<id>\d+)/void', array( 'methods' => 'POST', 'callback' => function ( $r ) { $p = (array) $r->get_json_params(); return self::out( Contracts::void( (int) $r['id'], isset( $p['reason'] ) ? (string) $p['reason'] : '' ), array( 'ok' => true ) ); }, 'permission_callback' => $perm ) );
 		self::reg( '/contracts/(?P<id>\d+)/audit', array( 'methods' => 'GET', 'callback' => function ( $r ) {
 			$id = (int) $r['id'];

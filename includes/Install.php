@@ -6,7 +6,7 @@ defined( 'ABSPATH' ) || exit;
 /** WPFlat Sign' tables. */
 class Install {
 
-	const DB_VERSION = '2';
+	const DB_VERSION = '3';
 	const OPTION     = 'wpflatsign_db_version';
 
 	/** Cheap check on every request so an updated plugin upgrades itself. */
@@ -62,6 +62,8 @@ class Install {
   completed_at datetime DEFAULT NULL,
   expires_on date DEFAULT NULL,
   notes text,
+  from_email varchar(190) NOT NULL DEFAULT '',
+  from_user bigint(20) unsigned NOT NULL DEFAULT 0,
   created_by bigint(20) unsigned NOT NULL DEFAULT 0,
   created_at datetime DEFAULT NULL,
   updated_at datetime DEFAULT NULL,

@@ -2,7 +2,7 @@
 /**
  * Plugin Name: WPFlat Sign
  * Description: Contracts and agreements with e-signature, sealed PDFs and an audit trail. Needs WPFlat Core.
- * Version: 0.4.0
+ * Version: 0.4.1
  * Requires at least: 6.0
  * Requires PHP: 7.4
  * Author: Digitalzooks
@@ -12,7 +12,7 @@
 
 defined( 'ABSPATH' ) || exit;
 
-define( 'WPFLATSIGN_VERSION', '0.4.0' );
+define( 'WPFLATSIGN_VERSION', '0.4.1' );
 define( 'WPFLATSIGN_FILE', __FILE__ );
 define( 'WPFLATSIGN_DIR', plugin_dir_path( __FILE__ ) );
 define( 'WPFLATSIGN_URL', plugin_dir_url( __FILE__ ) );

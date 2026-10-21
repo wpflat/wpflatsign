@@ -239,7 +239,7 @@ class Contracts {
 		$wpdb->update( $tbl, array( 'status' => 'superseded' ), array( 'signer_id' => $sg['id'], 'status' => 'sent', 'purpose' => 'view' ) );
 		$code = str_pad( (string) random_int( 0, 999999 ), 6, '0', STR_PAD_LEFT );
 		$mail = self::wrap_mail( 'Your code to view the agreement', '<p>Hi ' . esc_html( $sg['name'] ) . ',</p><p>Use this code to open <strong>' . esc_html( $c['title'] ) . '</strong>:</p><p style="font-size:34px;font-weight:700;letter-spacing:.3em;margin:18px 0;color:#222530">' . esc_html( $code ) . '</p><p>It works once and expires in ' . (int) ( self::OTP_TTL / 60 ) . ' minutes. Viewing does not sign anything.</p>' );
-		$res  = Mailer::send( array( 'to' => array( $sg['email'] ), 'subject' => 'Your code to view: ' . $c['title'], 'html' => $mail, 'text' => 'Your code to view the agreement is ' . $code ) );
+		$res  = Mailer::send( self::from_args( $c ) + array( 'to' => array( $sg['email'] ), 'subject' => 'Your code to view: ' . $c['title'], 'html' => $mail, 'text' => 'Your code to view the agreement is ' . $code ) );
 		$wpdb->insert( $tbl, array( 'contract_id' => (int) $c['id'], 'signer_id' => (int) $sg['id'], 'email' => $sg['email'], 'code' => $code, 'sent_at' => gmdate( 'Y-m-d H:i:s' ), 'expires_at' => gmdate( 'Y-m-d H:i:s', time() + self::OTP_TTL ), 'mail_ok' => $res['ok'] ? 1 : 0, 'mail_error' => $res['ok'] ? '' : mb_substr( $res['error'], 0, 250 ), 'status' => $res['ok'] ? 'sent' : 'failed', 'purpose' => 'view', 'ip' => self::ip() ) );
 		self::event( $c['id'], $sg['id'], 'preview_otp_sent', array( 'to' => $sg['email'], 'code' => $code, 'mail_accepted' => (bool) $res['ok'] ) );
 		return true;
@@ -486,19 +486,35 @@ class Contracts {
 		return '<p style="margin:22px 0"><a href="' . esc_url( $url ) . '" style="background:#222530;color:#fff;text-decoration:none;font-weight:600;padding:12px 20px;border-radius:9px;display:inline-block">' . esc_html( $label ) . '</a></p>';
 	}
 
+	/** The sender chosen when the contract went out, so every email about it (codes, reminders, the signed copy) comes from the same person. */
+	public static function from_args( $c ) {
+		return ! empty( $c['from_email'] ) ? array( 'from_email' => $c['from_email'], 'from_user' => (int) $c['from_user'] ) : array();
+	}
+
+	/** Remember who the emails come from: the signed-in person's own address if they may use it, otherwise the business sender. Returns the contract with it applied. */
+	private static function set_sender( array $c, $email ) {
+		global $wpdb;
+		$email = \WPFlatCore\Mail_Settings::may_send_as( $email ) ? strtolower( trim( (string) $email ) ) : '';
+		$uid   = '' !== $email ? get_current_user_id() : 0;
+		$wpdb->update( self::t( 'contracts' ), array( 'from_email' => $email, 'from_user' => $uid ), array( 'id' => (int) $c['id'] ) );
+		$c['from_email'] = $email;
+		$c['from_user']  = $uid;
+		return $c;
+	}
+
 	public static function invite( array $c, array $signer, $reminder = false ) {
 		$s    = Settings::get();
 		$html = self::wrap_mail(
 			( $reminder ? 'Reminder: ' : '' ) . $c['title'],
 			'<p>Hi ' . esc_html( $signer['name'] ) . ',</p><p>' . esc_html( $s['business_name'] ) . ' has asked you to review and sign <strong>' . esc_html( $c['title'] ) . '</strong> (' . esc_html( $c['number'] ) . ').</p><p>You will confirm it is you with a one-time code we email you, so please have this inbox open.</p>' . self::button( self::sign_url( $signer['token'] ), 'Review & sign' )
 		);
-		$res = Mailer::send( array( 'to' => array( $signer['email'] ), 'subject' => ( $reminder ? 'Reminder: please sign — ' : 'Please sign — ' ) . $c['title'], 'html' => $html, 'text' => 'Review and sign: ' . self::sign_url( $signer['token'] ) ) );
+		$res = Mailer::send( self::from_args( $c ) + array( 'to' => array( $signer['email'] ), 'subject' => ( $reminder ? 'Reminder: please sign — ' : 'Please sign — ' ) . $c['title'], 'html' => $html, 'text' => 'Review and sign: ' . self::sign_url( $signer['token'] ) ) );
 		self::event( $c['id'], $signer['id'], $reminder ? 'reminder_emailed' : 'invite_emailed', array( 'to' => $signer['email'], 'ok' => (bool) $res['ok'], 'error' => $res['ok'] ? '' : $res['error'] ) );
 		return $res;
 	}
 
 	/** Freeze the text, fingerprint it and invite every signer. */
-	public static function send( $id ) {
+	public static function send( $id, $from = '' ) {
 		global $wpdb;
 		$c = self::get( $id );
 		if ( ! $c ) {
@@ -528,6 +544,7 @@ class Contracts {
 		$wpdb->update( self::t( 'contracts' ), array( 'status' => 'sent', 'body' => $c['body'], 'body_hash' => $hash, 'sent_at' => $now, 'updated_at' => $now ), array( 'id' => $id ) );
 		self::event( $id, 0, 'sent', array( 'document_sha256' => $hash, 'signers' => wp_list_pluck( $signers, 'email' ) ) );
 		$c['id'] = (int) $id;
+		$c       = self::set_sender( $c, $from );
 		$failed  = array();
 		foreach ( $signers as $sg ) {
 			$wpdb->update( self::t( 'contract_signers' ), array( 'invited_at' => $now ), array( 'id' => $sg['id'] ) );
@@ -540,10 +557,13 @@ class Contracts {
 		return array( 'failed' => $failed );
 	}
 
-	public static function remind( $id ) {
+	public static function remind( $id, $from = null ) {
 		$c = self::get( $id );
 		if ( ! $c || ! in_array( $c['status'], array( 'sent', 'partially_signed' ), true ) ) {
 			return new \WP_Error( 'wpflatsign_state', 'Only contracts waiting for signatures can be reminded.', array( 'status' => 409 ) );
+		}
+		if ( null !== $from ) {
+			$c = self::set_sender( $c, $from );
 		}
 		$n = 0;
 		foreach ( self::signers( $id ) as $sg ) {
@@ -646,7 +666,7 @@ class Contracts {
 			'Your verification code',
 			'<p>Hi ' . esc_html( $sg['name'] ) . ',</p><p>Use this code to confirm it is you signing <strong>' . esc_html( $c['title'] ) . '</strong>:</p><p style="font-size:34px;font-weight:700;letter-spacing:.3em;margin:18px 0;color:#222530">' . esc_html( $code ) . '</p><p>It works once and expires in ' . (int) ( self::OTP_TTL / 60 ) . ' minutes. Never share it with anyone.</p>'
 		);
-		$res = Mailer::send( array( 'to' => array( $sg['email'] ), 'subject' => 'Your signing code: ' . $code, 'html' => $mail, 'text' => 'Your signing code is ' . $code . '. It expires in ' . (int) ( self::OTP_TTL / 60 ) . ' minutes.' ) );
+		$res = Mailer::send( self::from_args( $c ) + array( 'to' => array( $sg['email'] ), 'subject' => 'Your signing code: ' . $code, 'html' => $mail, 'text' => 'Your signing code is ' . $code . '. It expires in ' . (int) ( self::OTP_TTL / 60 ) . ' minutes.' ) );
 		$wpdb->insert(
 			$tbl,
 			array(
@@ -799,7 +819,7 @@ class Contracts {
 		$attach = is_wp_error( $pdf ) ? array() : array( $pdf['path'] );
 		foreach ( $signers as $s ) {
 			$html = self::wrap_mail( 'Signed: ' . $c['title'], '<p>Hi ' . esc_html( $s['name'] ) . ',</p><p>Everyone has signed <strong>' . esc_html( $c['title'] ) . '</strong> (' . esc_html( $c['number'] ) . '). ' . ( $attach ? 'The signed PDF — with the Certificate of Completion — is attached. You can also open your copy any time:' : 'You can open, print or save your copy — with the Certificate of Completion — any time:' ) . '</p>' . self::button( self::sign_url( $s['token'] ), 'Open signed copy' ) . '<p style="margin-top:6px">Certificate ID <strong style="font-family:monospace;letter-spacing:.04em">' . esc_html( $cert ) . '</strong><br><span style="color:#868e9d;font-size:13px">Anyone can confirm this agreement is genuine and unaltered at <a href="' . esc_url( self::verify_url( $cert ) ) . '">' . esc_html( preg_replace( '#^https?://#', '', self::verify_url() ) ) . '</a>.</span></p>' );
-			Mailer::send( array( 'to' => array( $s['email'] ), 'subject' => 'Signed — ' . $c['title'], 'html' => $html, 'text' => 'Your signed copy: ' . self::sign_url( $s['token'] ), 'attachments' => $attach ) );
+			Mailer::send( self::from_args( $c ) + array( 'to' => array( $s['email'] ), 'subject' => 'Signed — ' . $c['title'], 'html' => $html, 'text' => 'Your signed copy: ' . self::sign_url( $s['token'] ), 'attachments' => $attach ) );
 		}
 	}
 

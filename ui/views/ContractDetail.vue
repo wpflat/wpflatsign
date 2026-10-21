@@ -1,7 +1,7 @@
 <script setup>
 import { computed, onMounted, reactive, ref } from 'vue';
 import { ArrowLeft } from '@element-plus/icons-vue';
-import { sdk, api, errorMessage, navigate, ElMessage, ElMessageBox, RemoteSelect, LinkedRecords, copyText, dept, fmtDate, options } from '../core';
+import { sdk, api, errorMessage, navigate, ElMessage, ElMessageBox, RemoteSelect, SenderPicker, LinkedRecords, copyText, dept, fmtDate, options } from '../core';
 import RichText from '../components/RichText.vue';
 import { CONTRACT_FIELDS } from '../resources';
 import { statusOf, signerStatusOf } from '../util';
@@ -36,6 +36,7 @@ const load = async () => {
 	try {
 		c.value = await api.get( 'contracts', props.id );
 		fill( c.value );
+		fromEmail.value = c.value.from_email || '';
 		syncPreview();
 		if ( c.value.status !== 'draft' ) {
 			audit.value = await api.getPath( `contracts/${ props.id }/audit` );
@@ -104,6 +105,8 @@ const removeSigner = ( i ) => form.signers.splice( i, 1 );
 
 const payload = () => ( { title: form.title, doc_type: form.doc_type, client_id: form.client_id, template_id: form.template_id, department_id: form.department_id || 0, body: form.body, expires_on: form.expires_on, signers: form.signers } );
 
+const fromEmail = ref( '' ); // '' = the business sender; otherwise the signed-in person's own address
+
 const save = async ( thenSend = false ) => {
 	if ( ! form.title.trim() ) {
 		ElMessage.warning( `Give the ${ cw } a title.` );
@@ -135,7 +138,7 @@ const save = async ( thenSend = false ) => {
 };
 
 const doSend = async ( id ) => {
-	const r = await api.post( `contracts/${ id }/send` );
+	const r = await api.post( `contracts/${ id }/send`, { from_email: fromEmail.value } );
 	if ( r.failed && r.failed.length ) {
 		ElMessage.warning( 'Sent, but these emails were not accepted by the mail server: ' + r.failed.join( ', ' ) + '. Copy their links below instead.' );
 	} else {
@@ -163,7 +166,7 @@ const send = async () => {
 
 const remind = async () => {
 	try {
-		const r = await api.post( `contracts/${ props.id }/remind` );
+		const r = await api.post( `contracts/${ props.id }/remind`, { from_email: fromEmail.value } );
 		ElMessage.success( `Reminder sent to ${ r.reminded } ${ r.reminded === 1 ? 'person' : 'people' }` );
 		await load();
 	} catch ( e ) {
@@ -331,6 +334,9 @@ const detail = ( e ) => {
 
 		<el-row :gutter="16">
 			<el-col :xs="24" :md="16">
+				<el-card v-if="SenderPicker && ( draft || ( c && [ 'sent', 'partially_signed' ].includes( c.status ) ) )" shadow="never" class="bd-mb">
+					<SenderPicker v-model="fromEmail" label="Send the signing emails from" />
+				</el-card>
 				<el-card v-if="draft" shadow="never" class="bd-mb">
 					<el-form label-position="top">
 						<el-row :gutter="14">
