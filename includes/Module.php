@@ -57,7 +57,7 @@ class Module {
 				'public_paths'  => array( 'sign', 'verify', 'contract' ),
 				'public_params' => array( 'bd_certificate' ),
 				'roles'         => array(
-					'wpflat_sign_team' => array( 'label' => 'WPFlat Sign Team', 'desc' => 'Contracts, templates, e-signatures.', 'caps' => array( 'wpflatsign_contracts' ) ),
+					'wpflat_sign_team' => array( 'label' => 'Sign Team', 'desc' => 'Contracts, templates, e-signatures.', 'caps' => array( 'wpflatsign_contracts' ) ),
 				),
 				'client_manager_caps' => array( 'wpflatsign_contracts' ),
 				'manager_grants'      => array( 'sign' => array( 'label' => 'Documents', 'caps' => array( 'wpflatsign_contracts' ) ) ),
