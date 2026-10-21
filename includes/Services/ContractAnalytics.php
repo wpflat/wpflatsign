@@ -1,7 +1,7 @@
 <?php
-namespace BizySign\Services;
+namespace WPFlatSign\Services;
 
-use BizySign\Schema;
+use WPFlatSign\Schema;
 
 defined( 'ABSPATH' ) || exit;
 
@@ -29,8 +29,8 @@ class ContractAnalytics {
 	public static function query( array $f ) {
 		global $wpdb;
 		$today = current_time( 'Y-m-d' );
-		$to    = \BizyCore\Services\Series::date_or( isset( $f['to'] ) ? $f['to'] : '', $today );
-		$from  = \BizyCore\Services\Series::date_or( isset( $f['from'] ) ? $f['from'] : '', gmdate( 'Y-m-d', strtotime( "$to -89 days" ) ) );
+		$to    = \WPFlatCore\Services\Series::date_or( isset( $f['to'] ) ? $f['to'] : '', $today );
+		$from  = \WPFlatCore\Services\Series::date_or( isset( $f['from'] ) ? $f['from'] : '', gmdate( 'Y-m-d', strtotime( "$to -89 days" ) ) );
 		if ( $from > $to ) {
 			list( $from, $to ) = array( $to, $from );
 		}
@@ -40,7 +40,7 @@ class ContractAnalytics {
 		} elseif ( ! empty( $f['department_id'] ) && (int) $f['department_id'] > 0 ) {
 			$dept = (int) $f['department_id'];
 		}
-		$gran = \BizyCore\Services\Series::granularity( $from, $to );
+		$gran = \WPFlatCore\Services\Series::granularity( $from, $to );
 		$ct   = Schema::table( 'contracts' );
 		$sg   = Schema::table( 'contract_signers' );
 		$ev   = Schema::table( 'contract_events' );
@@ -51,7 +51,7 @@ class ContractAnalytics {
 			return $dt ? substr( $dt, 0, 10 ) : '';
 		};
 
-		$bl  = \BizyCore\Services\Series::buckets( $from, $to, $gran );
+		$bl  = \WPFlatCore\Services\Series::buckets( $from, $to, $gran );
 		$idx = array();
 		foreach ( $bl as $i => $b ) {
 			$idx[ $b['key'] ] = $i;
@@ -77,7 +77,7 @@ class ContractAnalytics {
 			if ( $sd && $sd >= $from && $sd <= $to ) {
 				++$stat['sent'];
 				$ids_cohort[] = (int) $r['id'];
-				$k = \BizyCore\Services\Series::bucket( $sd, $gran );
+				$k = \WPFlatCore\Services\Series::bucket( $sd, $gran );
 				isset( $idx[ $k ] ) && ++$sent_s[ $idx[ $k ] ];
 				'signed' === $st && ++$stat['cohort_signed'];
 				in_array( $st, array( 'sent', 'partially_signed' ), true ) && ++$stat['cohort_pending'];
@@ -94,7 +94,7 @@ class ContractAnalytics {
 			}
 			if ( 'signed' === $st && $cd && $cd >= $from && $cd <= $to ) {
 				++$stat['signed'];
-				$k = \BizyCore\Services\Series::bucket( $cd, $gran );
+				$k = \WPFlatCore\Services\Series::bucket( $cd, $gran );
 				isset( $idx[ $k ] ) && ++$sign_s[ $idx[ $k ] ];
 				if ( $r['sent_at'] ) {
 					$h        = self::hours( $r['sent_at'], $r['completed_at'] );

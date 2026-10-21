@@ -1,19 +1,19 @@
 <?php
-namespace BizySign;
+namespace WPFlatSign;
 
-use BizyCore\Resources;
-use BizySign\Services\Contracts;
+use WPFlatCore\Resources;
+use WPFlatSign\Services\Contracts;
 
 defined( 'ABSPATH' ) || exit;
 
-/** BizySign' REST resources: templates, contracts (and other signed documents). */
+/** WPFlat Sign' REST resources: templates, contracts (and other signed documents). */
 class Resources_Def {
 
 	public static function register() {
 		$defs = array(
 			'contract-templates' => array(
 				'route'    => 'contract-templates',
-				'table'    => 'bizysign_templates',
+				'table'    => 'wpflatsign_templates',
 				'label'    => 'Contract template',
 				'cols'     => array( 'name' => 's', 'description' => 's', 'doc_type' => 's', 'body' => 'h', 'is_active' => 'b', 'department_id' => 'i' ),
 				'filters'  => array( 'is_active', 'department_id', 'doc_type' ),
@@ -33,7 +33,7 @@ class Resources_Def {
 
 			'contracts'       => array(
 				'route'    => 'contracts',
-				'table'    => 'bizysign_contracts',
+				'table'    => 'wpflatsign_contracts',
 				'label'    => 'Contract',
 				'select'   => ', c.name AS client_name, dp.name AS department_name, (SELECT COUNT(*) FROM ' . Schema::table( 'contract_signers' ) . ' sg WHERE sg.contract_id=t.id) AS signer_total, (SELECT COUNT(*) FROM ' . Schema::table( 'contract_signers' ) . " sg2 WHERE sg2.contract_id=t.id AND sg2.status='signed') AS signer_done",
 				'join'     => 'LEFT JOIN ' . Schema::table( 'clients' ) . ' c ON c.id=t.client_id LEFT JOIN ' . Schema::table( 'brands' ) . ' dp ON dp.id=t.department_id',
@@ -63,7 +63,7 @@ class Resources_Def {
 						$d['view_access'] = 'public' === Settings::get( 'contract_view_default' ) ? 'public' : 'private';
 						if ( empty( $d['department_id'] ) ) {
 							$tp_dept = ! empty( $d['template_id'] ) ? (int) $wpdb->get_var( $wpdb->prepare( 'SELECT department_id FROM ' . Schema::table( 'contract_templates' ) . ' WHERE id=%d', (int) $d['template_id'] ) ) : 0; // phpcs:ignore WordPress.DB
-							$d['department_id'] = $tp_dept ? $tp_dept : \BizyCore\Services\Departments::client_primary( isset( $d['client_id'] ) ? $d['client_id'] : 0 ); // the template's department, else the client's
+							$d['department_id'] = $tp_dept ? $tp_dept : \WPFlatCore\Services\Departments::client_primary( isset( $d['client_id'] ) ? $d['client_id'] : 0 ); // the template's department, else the client's
 						}
 						if ( empty( $d['body'] ) && ! empty( $d['template_id'] ) ) {
 							$d['body'] = (string) $wpdb->get_var( $wpdb->prepare( 'SELECT body FROM ' . Schema::table( 'contract_templates' ) . ' WHERE id=%d', (int) $d['template_id'] ) ); // phpcs:ignore WordPress.DB
@@ -88,7 +88,7 @@ class Resources_Def {
 					}
 				},
 				'before_delete' => function ( $row ) {
-					return in_array( $row['status'], array( 'draft', 'void', 'declined' ), true ) ? true : new \WP_Error( 'bizysign_blocked', 'A contract that is out for signature or signed is a legal record and cannot be deleted. Void it instead.', array( 'status' => 409 ) );
+					return in_array( $row['status'], array( 'draft', 'void', 'declined' ), true ) ? true : new \WP_Error( 'wpflatsign_blocked', 'A contract that is out for signature or signed is a legal record and cannot be deleted. Void it instead.', array( 'status' => 409 ) );
 				},
 				'after_delete' => function ( $row ) {
 					global $wpdb;

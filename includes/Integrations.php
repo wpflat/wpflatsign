@@ -1,25 +1,25 @@
 <?php
-namespace BizySign;
+namespace WPFlatSign;
 
-use BizyCore\Links;
-use BizyCore\Registry;
-use BizyCore\Terminology;
+use WPFlatCore\Links;
+use WPFlatCore\Registry;
+use WPFlatCore\Terminology;
 
 defined( 'ABSPATH' ) || exit;
 
-/** How BizySign shows up in BizyCore's shared places: links, search, messages, Home, department pages. */
+/** How WPFlat Sign shows up in WPFlat Core's shared places: links, search, messages, Home, department pages. */
 class Integrations {
 
 	public static function init() {
-		add_filter( 'bizycore_search', array( __CLASS__, 'search' ), 10, 2 );
-		add_filter( 'bizycore_message_contexts', array( __CLASS__, 'message_contexts' ), 10, 2 );
-		add_filter( 'bizycore_message_context_name', array( __CLASS__, 'message_context_name' ), 10, 3 );
-		add_filter( 'bizycore_home', array( __CLASS__, 'home' ) );
-		add_filter( 'bizycore_department_card', array( __CLASS__, 'department_card' ), 10, 4 );
-		add_filter( 'bizycore_department_detail', array( __CLASS__, 'department_detail' ), 10, 4 );
-		add_filter( 'bizycore_lookup_defaults', array( __CLASS__, 'lookups' ) );
-		add_filter( 'bizycore_meta', array( __CLASS__, 'meta' ) );
-		add_action( 'bizycore_client_deleted', array( __CLASS__, 'client_deleted' ) );
+		add_filter( 'wpflatcore_search', array( __CLASS__, 'search' ), 10, 2 );
+		add_filter( 'wpflatcore_message_contexts', array( __CLASS__, 'message_contexts' ), 10, 2 );
+		add_filter( 'wpflatcore_message_context_name', array( __CLASS__, 'message_context_name' ), 10, 3 );
+		add_filter( 'wpflatcore_home', array( __CLASS__, 'home' ) );
+		add_filter( 'wpflatcore_department_card', array( __CLASS__, 'department_card' ), 10, 4 );
+		add_filter( 'wpflatcore_department_detail', array( __CLASS__, 'department_detail' ), 10, 4 );
+		add_filter( 'wpflatcore_lookup_defaults', array( __CLASS__, 'lookups' ) );
+		add_filter( 'wpflatcore_meta', array( __CLASS__, 'meta' ) );
+		add_action( 'wpflatcore_client_deleted', array( __CLASS__, 'client_deleted' ) );
 	}
 
 	private static function on() {
@@ -27,10 +27,10 @@ class Integrations {
 	}
 
 	private static function can() {
-		return current_user_can( 'manage_options' ) || current_user_can( 'bizysign_contracts' );
+		return current_user_can( 'manage_options' ) || current_user_can( 'wpflatsign_contracts' );
 	}
 
-	/** The kinds of document BizySign keeps in BizyCore's lists. */
+	/** The kinds of document WPFlat Sign keeps in WPFlat Core's lists. */
 	public static function lookups( $d ) {
 		$d['doc_type']      = array(
 			array( 'contract', 'Contract', 0, '#2563eb' ),
@@ -42,7 +42,7 @@ class Integrations {
 		return $d;
 	}
 
-	/** BizySign' own settings reach the browser app in meta.settings. */
+	/** WPFlat Sign' own settings reach the browser app in meta.settings. */
 	public static function meta( $m ) {
 		if ( ! self::on() ) {
 			return $m;

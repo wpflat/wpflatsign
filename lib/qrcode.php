@@ -1,5 +1,5 @@
 <?php
-namespace BizySign\Lib;
+namespace WPFlatSign\Lib;
 
 //---------------------------------------------------------------
 // QRCode for PHP5

@@ -1,6 +1,6 @@
 name: Release
 
-# Push a tag like v0.1.0 (it must match the "Version:" line in bizysign.php) and this attaches an installable zip to a GitHub release.
+# Push a tag like v0.1.0 (it must match the "Version:" line in wpflatsign.php) and this attaches an installable zip to a GitHub release.
 on:
   push:
     tags: [ 'v*' ]
@@ -14,29 +14,29 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          path: bizysign
+          path: wpflatsign
 
       - name: Check the tag matches the plugin version
         run: |
-          V=$(grep -m1 '^ \* Version:' bizysign/bizysign.php | awk '{print $3}')
+          V=$(grep -m1 '^ \* Version:' wpflatsign/wpflatsign.php | awk '{print $3}')
           if [ "v$V" != "$GITHUB_REF_NAME" ]; then
-            echo "Tag $GITHUB_REF_NAME does not match Version: $V in bizysign.php" >&2
+            echo "Tag $GITHUB_REF_NAME does not match Version: $V in wpflatsign.php" >&2
             exit 1
           fi
           echo "VERSION=$V" >> "$GITHUB_ENV"
 
       - name: Build the zip (the plugin folder, without development files)
         run: |
-          zip -rq "bizysign-$VERSION.zip" bizysign \
-            -x "bizysign/.git/*" "bizysign/.github/*" "bizysign/.gitignore" "bizysign/ui/*" "bizysign/vite*.js" "bizysign/package*.json" "bizysign/API.md" \
-               "bizysign/node_modules/*" "bizysign/lib/dompdf/tests/*" '*.DS_Store'
-          cp "bizysign-$VERSION.zip" bizysign.zip   # a stable name, so .../releases/latest/download/bizysign.zip always works
-          unzip -l bizysign.zip | tail -1
+          zip -rq "wpflatsign-$VERSION.zip" wpflatsign \
+            -x "wpflatsign/.git/*" "wpflatsign/.github/*" "wpflatsign/.gitignore" "wpflatsign/ui/*" "wpflatsign/vite*.js" "wpflatsign/package*.json" "wpflatsign/API.md" \
+               "wpflatsign/node_modules/*" "wpflatsign/lib/dompdf/tests/*" '*.DS_Store'
+          cp "wpflatsign-$VERSION.zip" wpflatsign.zip   # a stable name, so .../releases/latest/download/wpflatsign.zip always works
+          unzip -l wpflatsign.zip | tail -1
 
       - name: Publish the release
         uses: softprops/action-gh-release@v2
         with:
           files: |
-            bizysign-${{ env.VERSION }}.zip
-            bizysign.zip
+            wpflatsign-${{ env.VERSION }}.zip
+            wpflatsign.zip
           generate_release_notes: true

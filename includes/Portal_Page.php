@@ -1,10 +1,10 @@
 <?php
-namespace BizySign;
+namespace WPFlatSign;
 
-use BizyCore\Portal;
-use BizyCore\Services\Portal_Users;
-use BizySign\Services\Contract_Pdf;
-use BizySign\Services\Contracts;
+use WPFlatCore\Portal;
+use WPFlatCore\Services\Portal_Users;
+use WPFlatSign\Services\Contract_Pdf;
+use WPFlatSign\Services\Contracts;
 
 defined( 'ABSPATH' ) || exit;
 

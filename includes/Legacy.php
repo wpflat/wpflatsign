@@ -1,15 +1,15 @@
 <?php
-namespace BizySign;
+namespace WPFlatSign;
 
-use BizyCore\Migration\Legacy as Core_Legacy;
-use BizyCore\Migration\Reader;
+use WPFlatCore\Migration\Legacy as Core_Legacy;
+use WPFlatCore\Migration\Reader;
 
 defined( 'ABSPATH' ) || exit;
 
 /**
  * Takes the documents out of an old BizyDash backup: templates, contracts, signers, the audit log and the sealed PDFs.
  * Ids and hashes are kept exactly, so the hash chain and the PDF fingerprints still verify. A contract's old
- * project_id becomes a link when BizyTasks is installed.
+ * project_id becomes a link when WPFlat Tasks is installed.
  */
 class Legacy {
 
@@ -23,7 +23,7 @@ class Legacy {
 	);
 
 	public static function init() {
-		add_filter( 'bizycore_legacy_import_sign', array( __CLASS__, 'import' ), 10, 2 );
+		add_filter( 'wpflatcore_legacy_import_sign', array( __CLASS__, 'import' ), 10, 2 );
 	}
 
 	/** @return array|\WP_Error */
@@ -34,7 +34,7 @@ class Legacy {
 			$had += (int) $wpdb->get_var( 'SELECT COUNT(*) FROM ' . Schema::table( $new ) ); // phpcs:ignore WordPress.DB
 		}
 		if ( $had && empty( Core_Legacy::module_state( 'sign' )['done'] ) ) {
-			return new \WP_Error( 'bizysign_not_empty', 'BizySign already has records. Importing would mix them with the old ones. Remove them first, or skip this import.', array( 'status' => 409 ) );
+			return new \WP_Error( 'wpflatsign_not_empty', 'WPFlat Sign already has records. Importing would mix them with the old ones. Remove them first, or skip this import.', array( 'status' => 409 ) );
 		}
 		foreach ( self::TABLES as $new ) {
 			$wpdb->query( 'TRUNCATE TABLE ' . Schema::table( $new ) ); // phpcs:ignore WordPress.DB
@@ -60,11 +60,11 @@ class Legacy {
 				$out[ $old . '_failed' ] = $f;
 			}
 		}
-		// A contract tied to a project becomes a link (needs BizyTasks).
+		// A contract tied to a project becomes a link (needs WPFlat Tasks).
 		$linked = 0;
-		if ( \BizyCore\Links::is_available( 'project' ) ) {
+		if ( \WPFlatCore\Links::is_available( 'project' ) ) {
 			foreach ( $reader->rows( 'contracts' ) as $c ) {
-				if ( (int) $c['project_id'] > 0 && ! is_wp_error( \BizyCore\Links::add( 'contract', (int) $c['id'], 'project', (int) $c['project_id'] ) ) ) {
+				if ( (int) $c['project_id'] > 0 && ! is_wp_error( \WPFlatCore\Links::add( 'contract', (int) $c['id'], 'project', (int) $c['project_id'] ) ) ) {
 					$linked++;
 				}
 			}
@@ -73,7 +73,7 @@ class Legacy {
 		// Sealed PDFs
 		$pdfs = 0;
 		foreach ( $reader->files_in( 'files/contract-pdfs/' ) as $e ) {
-			$dest = \BizyCore\Paths::dir( 'contracts' ) . '/' . basename( $e );
+			$dest = \WPFlatCore\Paths::dir( 'contracts' ) . '/' . basename( $e );
 			if ( $reader->extract_file( $e, $dest ) ) {
 				@chmod( $dest, 0640 ); // phpcs:ignore WordPress.PHP.NoSilencedErrors,WordPress.WP.AlternativeFunctions
 				$pdfs++;
@@ -84,7 +84,7 @@ class Legacy {
 		$imgs = 0;
 		foreach ( $reader->files_in( 'files/uploads/' ) as $e ) {
 			$rel  = substr( $e, strlen( 'files/uploads/' ) );
-			$dest = \BizyCore\Media::dir() . '/legacy/' . $rel;
+			$dest = \WPFlatCore\Media::dir() . '/legacy/' . $rel;
 			wp_mkdir_p( dirname( $dest ) );
 			if ( $reader->extract_file( $e, $dest ) ) {
 				$imgs++;
@@ -98,7 +98,7 @@ class Legacy {
 		}
 		$opts = Core_Legacy::rest( 'options' );
 		if ( isset( $opts['bizydash_contract_next'] ) ) {
-			update_option( 'bizysign_contract_next', (int) $opts['bizydash_contract_next'], false );
+			update_option( 'wpflatsign_contract_next', (int) $opts['bizydash_contract_next'], false );
 		}
 		return $out;
 	}

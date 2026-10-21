@@ -1,24 +1,24 @@
 <?php
-namespace BizySign;
+namespace WPFlatSign;
 
 defined( 'ABSPATH' ) || exit;
 
 /**
- * Table names. BizySign' own tables are bizysign_*; the code still asks for the short old names (contracts,
- * contract_signers…) and this maps them to the suite's tables. Core's tables are bizy_*.
+ * Table names. WPFlat Sign' own tables are wpflatsign_*; the code still asks for the short old names (contracts,
+ * contract_signers…) and this maps them to the suite's tables. Core's tables are wpflat_*.
  */
 class Schema {
 
-	/** old short name => BizySign table (without the WordPress prefix). */
+	/** old short name => WPFlat Sign table (without the WordPress prefix). */
 	const OWN = array(
-		'contract_templates' => 'bizysign_templates',
-		'contracts'          => 'bizysign_contracts',
-		'contract_signers'   => 'bizysign_signers',
-		'contract_events'    => 'bizysign_events',
-		'contract_otps'      => 'bizysign_otps',
+		'contract_templates' => 'wpflatsign_templates',
+		'contracts'          => 'wpflatsign_contracts',
+		'contract_signers'   => 'wpflatsign_signers',
+		'contract_events'    => 'wpflatsign_events',
+		'contract_otps'      => 'wpflatsign_otps',
 	);
 
-	const CORE = array( 'clients' => 'bizy_clients', 'brands' => 'bizy_departments', 'departments' => 'bizy_departments', 'client_brands' => 'bizy_client_departments', 'client_departments' => 'bizy_client_departments', 'client_contacts' => 'bizy_client_contacts', 'team_members' => 'bizy_team_members', 'activity' => 'bizy_activity', 'lookups' => 'bizy_lookups' );
+	const CORE = array( 'clients' => 'wpflat_clients', 'brands' => 'wpflat_departments', 'departments' => 'wpflat_departments', 'client_brands' => 'wpflat_client_departments', 'client_departments' => 'wpflat_client_departments', 'client_contacts' => 'wpflat_client_contacts', 'team_members' => 'wpflat_team_members', 'activity' => 'wpflat_activity', 'lookups' => 'wpflat_lookups' );
 
 	public static function table( $name ) {
 		global $wpdb;
@@ -31,7 +31,7 @@ class Schema {
 		return $wpdb->prefix . $name;
 	}
 
-	/** All of BizySign' table names, without the prefix. */
+	/** All of WPFlat Sign' table names, without the prefix. */
 	public static function all() {
 		return array_values( self::OWN );
 	}

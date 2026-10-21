@@ -1,16 +1,16 @@
 <?php
-namespace BizySign;
+namespace WPFlatSign;
 
-use BizyCore\Rest\Resource_Controller;
-use BizyCore\Rest\Routes as Core_Routes;
-use BizySign\Services\ContractAnalytics;
-use BizySign\Services\Contract_Pdf;
-use BizySign\Services\Contracts;
-use BizySign\Services\Docx_Import;
+use WPFlatCore\Rest\Resource_Controller;
+use WPFlatCore\Rest\Routes as Core_Routes;
+use WPFlatSign\Services\ContractAnalytics;
+use WPFlatSign\Services\Contract_Pdf;
+use WPFlatSign\Services\Contracts;
+use WPFlatSign\Services\Docx_Import;
 
 defined( 'ABSPATH' ) || exit;
 
-/** BizySign' REST routes (in BizyCore's bizycore/v1 namespace, gone when the module is off). */
+/** WPFlat Sign' REST routes (in WPFlat Core's wpflatcore/v1 namespace, gone when the module is off). */
 class Routes {
 
 	private static function reg( $route, $args ) {
@@ -37,7 +37,7 @@ class Routes {
 		self::reg( '/contracts/(?P<id>\d+)/preview', array( 'methods' => 'POST', 'callback' => function ( $r ) {
 			$id = (int) $r['id'];
 			if ( ! Contracts::get( $id ) ) {
-				return new \WP_Error( 'bizysign_not_found', 'Not found.', array( 'status' => 404 ) );
+				return new \WP_Error( 'wpflatsign_not_found', 'Not found.', array( 'status' => 404 ) );
 			}
 			$p = (array) $r->get_json_params();
 			if ( isset( $p['access'] ) ) {
@@ -69,13 +69,13 @@ class Routes {
 		if ( ! empty( $files['file']['tmp_name'] ) && is_uploaded_file( $files['file']['tmp_name'] ) ) {
 			$name = isset( $files['file']['name'] ) ? sanitize_file_name( $files['file']['name'] ) : 'document.docx';
 			if ( ! preg_match( '/\.docx?$/i', $name ) ) {
-				return new \WP_Error( 'bizysign_import', 'Please choose a Word file (.doc or .docx).', array( 'status' => 400 ) );
+				return new \WP_Error( 'wpflatsign_import', 'Please choose a Word file (.doc or .docx).', array( 'status' => 400 ) );
 			}
 			$res = Docx_Import::from_file( $files['file']['tmp_name'], trim( str_replace( array( '-', '_' ), ' ', preg_replace( '/\.docx?$/i', '', $name ) ) ) );
 		} elseif ( $req->get_param( 'url' ) ) {
 			$res = Docx_Import::from_google( (string) $req->get_param( 'url' ) );
 		} else {
-			return new \WP_Error( 'bizysign_import', 'Choose a Word file or paste a Google Docs link.', array( 'status' => 400 ) );
+			return new \WP_Error( 'wpflatsign_import', 'Choose a Word file or paste a Google Docs link.', array( 'status' => 400 ) );
 		}
 		return self::out( $res );
 	}

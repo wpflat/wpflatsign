@@ -1,12 +1,12 @@
 <?php
-namespace BizySign;
+namespace WPFlatSign;
 
 defined( 'ABSPATH' ) || exit;
 
-/** BizySign' own settings. The business name, logo and address come from BizyCore, so the one profile is shared. */
+/** WPFlat Sign' own settings. The business name, logo and address come from WPFlat Core, so the one profile is shared. */
 class Settings {
 
-	const OPTION = 'bizysign_settings';
+	const OPTION = 'wpflatsign_settings';
 
 	public static function defaults() {
 		return array(
@@ -17,12 +17,12 @@ class Settings {
 	public static function get( $key = null ) {
 		$own = wp_parse_args( get_option( self::OPTION, array() ), self::defaults() );
 		if ( null === $key ) {
-			return $own + \BizyCore\Settings::get();
+			return $own + \WPFlatCore\Settings::get();
 		}
 		if ( array_key_exists( $key, $own ) ) {
 			return $own[ $key ];
 		}
-		return \BizyCore\Settings::get( $key );
+		return \WPFlatCore\Settings::get( $key );
 	}
 
 	public static function update( array $in ) {

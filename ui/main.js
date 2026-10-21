@@ -14,7 +14,7 @@ import HomeStats from './slots/HomeStats.vue';
 import HomePanel from './slots/HomePanel.vue';
 import DocsSettings from './settings/DocsSettings.vue';
 
-/** BizySign registers its screens and what it adds to BizyCore's pages. Nothing runs unless the module is on. */
+/** WPFlat Sign registers its screens and what it adds to WPFlat Core's pages. Nothing runs unless the module is on. */
 const M = 'sign';
 sdk.registerIcon( 'sign', FileSignature );
 sdk.registerFieldType( 'richtext', RichText );

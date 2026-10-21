@@ -1,16 +1,16 @@
 <?php
-namespace BizySign;
+namespace WPFlatSign;
 
-use BizyCore\Assets;
+use WPFlatCore\Assets;
 
-use BizySign\Services\Contract_Pdf;
-use BizySign\Services\Contracts;
+use WPFlatSign\Services\Contract_Pdf;
+use WPFlatSign\Services\Contracts;
 
 defined( 'ABSPATH' ) || exit;
 
 /**
  * Public signing page   https://site/sign/<token>
- * Staff certificate     https://site/?bd_certificate=<contract id>   (needs manage_bizycore)
+ * Staff certificate     https://site/?bd_certificate=<contract id>   (needs manage_wpflatcore)
  */
 class Public_Contract {
 
@@ -68,8 +68,8 @@ class Public_Contract {
 		}
 
 		if ( $cert ) {
-			if ( ! current_user_can( 'manage_bizycore' ) ) {
-				wp_die( 'You need to be signed in to Bizy to view this.', 'Not allowed', array( 'response' => 403 ) );
+			if ( ! current_user_can( 'manage_wpflatcore' ) ) {
+				wp_die( 'You need to be signed in to WPFlat to view this.', 'Not allowed', array( 'response' => 403 ) );
 			}
 			$c = Contracts::get( $cert );
 			if ( ! $c ) {
@@ -100,7 +100,7 @@ class Public_Contract {
 
 	private static function gone() {
 		status_header( 404 );
-		echo \BizyCore\Public_Page::shell( 'Document unavailable', '<main class="bd-wrap"><div class="bd-doc bd-doc--empty"><h1>This document isn’t available</h1><p>The link may be wrong or may have been replaced. Please contact the sender.</p></div></main>', '' ); // phpcs:ignore WordPress.Security.EscapeOutput
+		echo \WPFlatCore\Public_Page::shell( 'Document unavailable', '<main class="bd-wrap"><div class="bd-doc bd-doc--empty"><h1>This document isn’t available</h1><p>The link may be wrong or may have been replaced. Please contact the sender.</p></div></main>', '' ); // phpcs:ignore WordPress.Security.EscapeOutput
 		exit;
 	}
 
@@ -205,7 +205,7 @@ class Public_Contract {
 	private static function stream_pdf( array $c, $signer_id, $who ) {
 		if ( 'signed' !== $c['status'] || ! Contract_Pdf::verify( $c ) ) {
 			status_header( 404 );
-			echo \BizyCore\Public_Page::shell( 'PDF unavailable', '<main class="bd-wrap"><div class="bd-doc bd-doc--empty"><h1>The signed PDF is not available</h1><p>It has not been created yet, or it failed its integrity check. Please contact the sender.</p></div></main>', '' ); // phpcs:ignore WordPress.Security.EscapeOutput
+			echo \WPFlatCore\Public_Page::shell( 'PDF unavailable', '<main class="bd-wrap"><div class="bd-doc bd-doc--empty"><h1>The signed PDF is not available</h1><p>It has not been created yet, or it failed its integrity check. Please contact the sender.</p></div></main>', '' ); // phpcs:ignore WordPress.Security.EscapeOutput
 			exit;
 		}
 		Contracts::event( $c['id'], $signer_id, 'pdf_downloaded', array( 'by' => $who ) );
@@ -234,7 +234,7 @@ class Public_Contract {
 		if ( ! $c ) {
 			self::gone();
 		}
-		$staff = current_user_can( 'manage_bizycore' );
+		$staff = current_user_can( 'manage_wpflatcore' );
 		$url   = Contracts::preview_url( $slug );
 		$msg   = '';
 		$step  = 'email';
@@ -296,7 +296,7 @@ class Public_Contract {
 			$body .= '<div class="vf-msg">' . esc_html( $msg ) . '</div>';
 		}
 		$body .= '<p class="bd-muted bd-sm" style="margin-top:20px">Got this agreement in an email? Open the link in that email instead — it takes you straight to it.</p></div></main>';
-		return \BizyCore\Public_Page::shell( 'Private agreement — ' . $s['business_name'], $body, $s['business_name'] );
+		return \WPFlatCore\Public_Page::shell( 'Private agreement — ' . $s['business_name'], $body, $s['business_name'] );
 	}
 
 	/* ───────────────────────── Public verification ───────────────────────── */
@@ -327,7 +327,7 @@ class Public_Contract {
 			}
 		}
 		$body .= '</div></main>';
-		return \BizyCore\Public_Page::shell( 'Verify a signed agreement — ' . $s['business_name'], $body, $s['business_name'] );
+		return \WPFlatCore\Public_Page::shell( 'Verify a signed agreement — ' . $s['business_name'], $body, $s['business_name'] );
 	}
 
 	/* ───────────────────────── Page ───────────────────────── */
@@ -347,7 +347,7 @@ class Public_Contract {
 		$viewer   = isset( $opts['viewer'] ) ? $opts['viewer'] : null;
 		$events   = Contracts::events( $c['id'] );
 		$chain    = Contracts::verify_chain( $c['id'] );
-		$body     = \BizyCore\Media::rewrite( wp_kses_post( $c['body'] ) );
+		$body     = \WPFlatCore\Media::rewrite( wp_kses_post( $c['body'] ) );
 		$reveal   = function ( $signer_id ) use ( $staff, $me ) {
 			return $staff || ( $me && (int) $me['id'] === (int) $signer_id );
 		};
@@ -525,7 +525,7 @@ $('ct-decline').onclick=function(){var r=prompt('Optional: tell the sender why y
 		</div>
 	</div>
 	<?php if ( $integ['cert_id'] ) : ?>
-	<script><?php echo file_get_contents( BIZYSIGN_DIR . 'assets/qrcode.min.js' ); // phpcs:ignore WordPress.Security.EscapeOutput, WordPress.WP.AlternativeFunctions ?></script>
+	<script><?php echo file_get_contents( WPFLATSIGN_DIR . 'assets/qrcode.min.js' ); // phpcs:ignore WordPress.Security.EscapeOutput, WordPress.WP.AlternativeFunctions ?></script>
 	<script>(function(){try{var q=qrcode(0,'M');q.addData(<?php echo wp_json_encode( Contracts::verify_url( $integ['cert_id'] ) ); ?>);q.make();document.getElementById('ct-qr').innerHTML=q.createSvgTag({cellSize:3,margin:0,scalable:true})}catch(e){}})()</script>
 	<?php endif; ?>
 	<h2>Document</h2>
@@ -603,6 +603,6 @@ $('ct-decline').onclick=function(){var r=prompt('Optional: tell the sender why y
 </main>
 <script>if(/[?&]print=1/.test(location.search)){window.addEventListener('load',function(){setTimeout(function(){window.print()},400)})}</script>
 		<?php
-		return \BizyCore\Public_Page::shell( $c['title'] . ' — ' . $s['business_name'], ob_get_clean(), $s['business_name'] );
+		return \WPFlatCore\Public_Page::shell( $c['title'] . ' — ' . $s['business_name'], ob_get_clean(), $s['business_name'] );
 	}
 }

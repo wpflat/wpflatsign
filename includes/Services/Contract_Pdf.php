@@ -1,7 +1,7 @@
 <?php
-namespace BizySign\Services;
+namespace WPFlatSign\Services;
 
-use BizySign\Settings;
+use WPFlatSign\Settings;
 
 defined( 'ABSPATH' ) || exit;
 
@@ -19,7 +19,7 @@ class Contract_Pdf {
 	/* ───────────────────────── Storage ───────────────────────── */
 
 	public static function dir() {
-		return \BizyCore\Paths::dir( 'contracts' );
+		return \WPFlatCore\Paths::dir( 'contracts' );
 	}
 
 	private static function work_dir( $name ) {
@@ -55,21 +55,21 @@ class Contract_Pdf {
 		global $wpdb;
 		$c = Contracts::get( $contract_id );
 		if ( ! $c || 'signed' !== $c['status'] ) {
-			return new \WP_Error( 'bizysign_state', 'Only a fully signed contract has a signed PDF.', array( 'status' => 409 ) );
+			return new \WP_Error( 'wpflatsign_state', 'Only a fully signed contract has a signed PDF.', array( 'status' => 409 ) );
 		}
 		if ( ! empty( $c['pdf_file'] ) ) {
-			return new \WP_Error( 'bizysign_state', 'The signed PDF already exists and cannot be replaced.', array( 'status' => 409 ) );
+			return new \WP_Error( 'wpflatsign_state', 'The signed PDF already exists and cannot be replaced.', array( 'status' => 409 ) );
 		}
 		try {
 			$bytes = self::render( $c );
 		} catch ( \Throwable $e ) {
 			Contracts::event( $contract_id, 0, 'pdf_failed', array( 'error' => mb_substr( $e->getMessage(), 0, 300 ) ) );
-			return new \WP_Error( 'bizysign_pdf', 'The PDF could not be created: ' . $e->getMessage(), array( 'status' => 500 ) );
+			return new \WP_Error( 'wpflatsign_pdf', 'The PDF could not be created: ' . $e->getMessage(), array( 'status' => 500 ) );
 		}
 		$name = strtolower( wp_generate_password( 24, false, false ) ) . '-' . sanitize_file_name( $c['number'] ) . '.pdf';
 		$path = self::dir() . '/' . $name;
 		if ( false === file_put_contents( $path, $bytes ) ) { // phpcs:ignore WordPress.WP.AlternativeFunctions
-			return new \WP_Error( 'bizysign_pdf', 'The PDF could not be saved on the server.', array( 'status' => 500 ) );
+			return new \WP_Error( 'wpflatsign_pdf', 'The PDF could not be saved on the server.', array( 'status' => 500 ) );
 		}
 		$hash = hash( 'sha256', $bytes );
 		$wpdb->update( Contracts::t( 'contracts' ), array( 'pdf_file' => $name, 'pdf_hash' => $hash, 'pdf_size' => strlen( $bytes ), 'pdf_at' => current_time( 'mysql' ) ), array( 'id' => (int) $contract_id ) );
@@ -79,9 +79,9 @@ class Contract_Pdf {
 
 	private static function load_engine() {
 		if ( ! class_exists( '\Dompdf\Dompdf', false ) ) {
-			require_once BIZYSIGN_DIR . 'lib/dompdf/autoload.inc.php';
+			require_once WPFLATSIGN_DIR . 'lib/dompdf/autoload.inc.php';
 		}
-		require_once BIZYSIGN_DIR . 'lib/qrcode.php';
+		require_once WPFLATSIGN_DIR . 'lib/qrcode.php';
 	}
 
 	private static function render( array $c ) {
@@ -97,7 +97,7 @@ class Contract_Pdf {
 		$opt->set( 'fontDir', $fonts );
 		$opt->set( 'fontCache', $fonts );
 		$opt->set( 'tempDir', $tmp );
-		$opt->set( 'chroot', array( BIZYSIGN_DIR, wp_upload_dir()['basedir'], \BizyCore\Paths::root() ) );
+		$opt->set( 'chroot', array( WPFLATSIGN_DIR, wp_upload_dir()['basedir'], \WPFlatCore\Paths::root() ) );
 		$opt->set( 'isRemoteEnabled', false );
 		$opt->set( 'isPhpEnabled', false );
 		$opt->set( 'isJavascriptEnabled', false );
@@ -126,13 +126,13 @@ class Contract_Pdf {
 		$pdf->addInfo( 'Title', $c['number'] . ' ' . $c['title'] );
 		$pdf->addInfo( 'Author', Settings::get( 'business_name' ) );
 		$pdf->addInfo( 'Subject', 'Electronically signed agreement with Certificate of Completion' );
-		$pdf->addInfo( 'Creator', 'Bizy' );
+		$pdf->addInfo( 'Creator', 'WPFlat' );
 		return $pdf->output();
 	}
 
 	private static function register_fonts( \Dompdf\Dompdf $pdf ) {
 		$fm  = $pdf->getFontMetrics();
-		$dir = BIZYCORE_DIR . 'assets/pdf-fonts/';
+		$dir = WPFLATCORE_DIR . 'assets/pdf-fonts/';
 		$fam = $fm->getFamily( 'inter' );
 		if ( is_array( $fam ) && count( $fam ) >= 4 ) {
 			return;
@@ -164,10 +164,10 @@ class Contract_Pdf {
 		if ( 0 === strpos( $url, 'data:image/' ) ) {
 			return $url;
 		}
-		if ( 0 === strpos( $url, \BizyCore\Media::base_url() ) ) {
-			$file = \BizyCore\Media::path_of( rawurldecode( substr( $url, strlen( \BizyCore\Media::base_url() ) ) ) );
+		if ( 0 === strpos( $url, \WPFlatCore\Media::base_url() ) ) {
+			$file = \WPFlatCore\Media::path_of( rawurldecode( substr( $url, strlen( \WPFlatCore\Media::base_url() ) ) ) );
 		} elseif ( 0 === strpos( $url, $u['baseurl'] ) ) {
-			$file = \BizyCore\Media::resolve_upload( rawurldecode( ltrim( substr( $url, strlen( $u['baseurl'] ) ), '/' ) ) );
+			$file = \WPFlatCore\Media::resolve_upload( rawurldecode( ltrim( substr( $url, strlen( $u['baseurl'] ) ), '/' ) ) );
 		} else {
 			return '';
 		}
@@ -278,7 +278,7 @@ class Contract_Pdf {
 			return '';
 		}
 		try {
-			$qr = \BizySign\Lib\QRCode::getMinimumQRCode( $text, QR_ERROR_CORRECT_LEVEL_M );
+			$qr = \WPFlatSign\Lib\QRCode::getMinimumQRCode( $text, QR_ERROR_CORRECT_LEVEL_M );
 			$im = $qr->createImage( 6, 2 );
 			ob_start();
 			imagepng( $im );
@@ -341,7 +341,7 @@ CSS;
 		$h  = '<!doctype html><html><head><meta charset="utf-8"><style>' . self::css() . '</style></head><body>';
 		$h .= '<table class="head"><tr><td>' . ( $logo ? '<img src="' . $logo . '" style="height:42pt">' : '<div style="font-size:15pt;font-weight:bold">' . self::e( $s['business_name'] ) . '</div>' ) . '</td><td style="text-align:right"><div class="k">Agreement</div><div class="num">' . self::e( $c['number'] ) . '</div></td></tr></table>';
 		$h .= '<div class="title">' . self::e( $c['title'] ) . '</div>';
-		list( $front, $back ) = self::prepare_body( \BizyCore\Media::rewrite( wp_kses_post( $c['body'] ) ) );
+		list( $front, $back ) = self::prepare_body( \WPFlatCore\Media::rewrite( wp_kses_post( $c['body'] ) ) );
 		$h .= '<div class="body">' . $front . '</div>';
 
 		// Signature cards (2 per row), kept together with the last clause.
@@ -416,7 +416,7 @@ CSS;
 			if ( ! $e['signer_id'] && $e['user_name'] ) {
 				$who = $e['user_name'];
 			}
-			$h .= '<tr><td style="white-space:nowrap">' . self::e( $e['created_at'] ) . '</td><td>' . self::e( \BizySign\Public_Contract::event_label( $e['event'] ) ) . '</td><td>' . self::e( $who ) . '</td><td>' . self::e( \BizySign\Public_Contract::event_summary( $e, true ) ) . '</td><td>' . self::e( $e['ip'] ) . '</td></tr>';
+			$h .= '<tr><td style="white-space:nowrap">' . self::e( $e['created_at'] ) . '</td><td>' . self::e( \WPFlatSign\Public_Contract::event_label( $e['event'] ) ) . '</td><td>' . self::e( $who ) . '</td><td>' . self::e( \WPFlatSign\Public_Contract::event_summary( $e, true ) ) . '</td><td>' . self::e( $e['ip'] ) . '</td></tr>';
 		}
 		$h .= '</table><div class="muted small" style="margin-top:10pt">Each audit row stores a SHA-256 hash that includes the previous row’s hash, so any later change to the history can be detected. Electronic signatures are legally recognised in most countries (including under the US ESIGN Act and UETA, the EU/UK eIDAS rules, and Nigeria’s Evidence Act). This certificate is a record, not legal advice.</div></div>';
 		$h .= '</body></html>';

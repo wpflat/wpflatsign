@@ -1,13 +1,13 @@
 <?php
-namespace BizySign;
+namespace WPFlatSign;
 
 defined( 'ABSPATH' ) || exit;
 
-/** BizySign' tables. */
+/** WPFlat Sign' tables. */
 class Install {
 
 	const DB_VERSION = '2';
-	const OPTION     = 'bizysign_db_version';
+	const OPTION     = 'wpflatsign_db_version';
 
 	/** Cheap check on every request so an updated plugin upgrades itself. */
 	public static function maybe_upgrade() {
